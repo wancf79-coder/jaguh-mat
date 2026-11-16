@@ -73,7 +73,9 @@ function sayText(q){
   const ms=ST.lang==='ms';let t=tr(q.q).replace(/\u00a0/g,'');
   if(/^[\d\s.]+$/.test(t))t=ms?'Bandingkan dua nombor ini.':'Compare these two numbers.';
   t=t.replace(/\s*\.\.\.\s*$/,ms?' apa?':' what?').replace(/\s*\.\.\.\s*/g,ms?' apa ':' what ');
-  if(q.eq){let e=q.eq.replace(/\u00a0/g,'');
+  const opEq=q.eq&&q.eq.replace(/\u00a0/g,'').match(/^([^?=]*[+−×÷][^?=]*?)\s*=\s*\?$/);
+  if(opEq&&/\?$/.test(t)){t=ms?t.replace(/\s*(tambah|tolak|darab|bahagi)?\s*\?$/,' '+opEq[1]+'?'):'What is '+opEq[1]+'?'}
+  else if(q.eq){let e=q.eq.replace(/\u00a0/g,'');
     if(/^\d+\s+\?\s+\d+$/.test(e))e=e.replace('?',ms?'dengan':'and');
     e=e.replace(/=\s*\?\s*$/,'=#').replace(/\?/g,ms?'berapa':'what').replace('=#',ms?' sama dengan berapa?':' equals what?').replace(/=/g,ms?' sama dengan ':' equals ');
     t+=' '+e}
@@ -82,7 +84,8 @@ function sayText(q){
   t=t.replace(/(\d|berapa|what)\s?(mm|cm|kg|ml|m|g|l)\b/g,(m,d,u)=>d+' '+(ms?UNIT_MS:UNIT_EN)[u]);
   t=t.replace(/\+/g,ms?' tambah ':' plus ').replace(/−/g,ms?' tolak ':' minus ').replace(/×/g,ms?' darab ':' times ').replace(/÷/g,ms?' bahagi ':' divided by ').replace(/%/g,ms?' peratus':' percent');
   t=t.replace(/(\d)\s*:\s*(\d+)\)/g,(m,a,b)=>a+(ms?' berbanding ':' to ')+b+')');
-  if(ms)t=msNums(t);
+  if(!ms)t=t.replace(/^The digit (\S+) in (\S+) is in the what place\.?$/,'In which place is the digit $1 in $2?');
+  t=ms?msNums(t):enNums(t);
   return t.replace(/\s+/g,' ').trim().slice(0,320);
 }
 function msNums(t){
@@ -92,6 +95,10 @@ function msNums(t){
    .replace(/(\d+)\.(\d+)/g,(m,a,b)=>W(a)+' perpuluhan '+b.split('').map(W).join(' '))
    .replace(/\d+/g,n=>W(n));
 }
+function enNums(t){ // nombor besar ditulis penuh supaya disebut betul (bukan 'two three four five')
+  return t.replace(/(\d+)\.(\d+)/g,(m,a,b)=>wEn(+a)+' point '+b.split('').map(d=>wEn(+d)).join(' '))
+   .replace(/(^|[^\d:])(\d{3,5})(?![\d:])/g,(m,p,n)=>p+wEn(+n).replace(' thousand ',' thousand, '));
+}
 const TTSC=new Map();let curAudio=null,AUD=null,VSTAT='';
 const SILENT='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=';
 function unlockAudio(){if(AUD)return;try{AUD=new Audio();AUD.src=SILENT;const p=AUD.play();if(p&&p.catch)p.catch(()=>{})}catch(e){}}
@@ -100,12 +107,12 @@ function ttsUrl(text,v){const k=v+ST.lang+text;if(TTSC.has(k))return TTSC.get(k)
   const p=fetch(CFG.url+'/functions/v1/tts',{method:'POST',headers:{'Content-Type':'application/json',apikey:CFG.key},body:JSON.stringify({text,lang:ST.lang,v})})
     .then(async r=>{if(r.ok)return(await r.json()).url;const j=await r.json().catch(()=>({}));throw new Error(/429|quota|no_key/i.test(j.error||'')?'QUOTA':'NET')});TTSC.set(k,p);p.catch(()=>TTSC.delete(k));return p}
 function stopVoice(){if(curAudio){try{curAudio.pause()}catch(e){}curAudio=null}}
-function speakView(){const vi=V.view??V.i;if(vi===V.i&&V.picked==null)return speakQ(vi);const q=V.qs[vi];ttsUrl(sayText(q),vi%2?'m':'f').then(u=>{stopVoice();curAudio=AUD||new Audio();curAudio.src=u;const p=curAudio.play();if(p&&p.catch)p.catch(()=>{})}).catch(()=>setV('err'))}
-function speakQ(i){if(!ST.sound||!CFG.url)return;const q=V.qs[i],v=i%2?'m':'f';
+function speakView(){const vi=V.view??V.i;if(vi===V.i&&V.picked==null)return speakQ(vi);const q=V.qs[vi];ttsUrl(sayText(q),q.vo||(vi%2?'m':'f')).then(u=>{stopVoice();curAudio=AUD||new Audio();curAudio.src=u;const p=curAudio.play();if(p&&p.catch)p.catch(()=>{})}).catch(()=>setV('err'))}
+function speakQ(i){if(!ST.sound||!CFG.url)return;const q=V.qs[i],v=q.vo||(i%2?'m':'f');
   setV('load');
   ttsUrl(sayText(q),v).then(u=>{if(V.v!=='play'||V.i!==i||V.picked!=null)return;stopVoice();setV('');curAudio=AUD||new Audio();curAudio.src=u;const p=curAudio.play();if(p&&p.catch)p.catch(()=>setV('tap'))}).catch(e=>{if(V.v==='play'&&V.i===i)setV(e&&e.message==='QUOTA'?'quota':'err')});
   prefetch(i+1,1)}
-function prefetch(from,k){if(!ST.sound||!CFG.url||!V.qs)return;for(let j=from;j<from+k&&j<V.qs.length;j++)ttsUrl(sayText(V.qs[j]),j%2?'m':'f').catch(()=>{})}
+function prefetch(from,k){if(!ST.sound||!CFG.url||!V.qs)return;for(let j=from;j<from+k&&j<V.qs.length;j++)ttsUrl(sayText(V.qs[j]),V.qs[j].vo||(j%2?'m':'f')).catch(()=>{})}
 
 /* ---------- online ---------- */
 async function rpc(fn,args){
@@ -238,9 +245,21 @@ function makeSet(gens,n){
     if(used&&(strict||used>=2||sig.has(a+vk(q))))continue;
     seen.add(key);sig.add(a+vk(q));ansN[a]=used+1;out.push(q)}
   while(out.length<n)out.push(genQ(gens(out.length)));return out}
-function startStage(id,s){const b=BAB[id];go('play',{id,s,mode:'stage',qs:makeSet(()=>b.st[s],STAGE_Q),i:0,view:0,rec:[],ok:0,score:0,streak:0,picked:null,t0:Date.now()})}
+/* bank soalan tetap (seeded) — supaya suara boleh dijana & disimpan awal */
+const BANK_N=20,BANK_V='b1',BANKC={};
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function hstr(x){let h=2166136261;for(const c of x){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
+function stageBank(id,s){const k=id+'|'+s;if(BANKC[k])return BANKC[k];const b=BAB[id],R=Math.random;Math.random=rng(hstr(BANK_V+'|'+k));
+  try{BANKC[k]=makeSet(()=>b.st[s],BANK_N).map((q,i)=>(q.vo=i%2?'m':'f',q.bk=k+'|'+i,q))}finally{Math.random=R}return BANKC[k]}
+const cloneQ=q=>JSON.parse(JSON.stringify(q));
+function pickBank(pools,n){ // pools: senarai bank; selang-seli suara f/m
+  const used=new Set(),out=[];
+  for(let i=0;out.length<n&&i<n*4;i++){const pool=shuf(pools[i%pools.length]),want=out.length%2?'m':'f';
+    const q=pool.find(q=>!used.has(q.bk)&&q.vo===want)||pool.find(q=>!used.has(q.bk));if(q){used.add(q.bk);out.push(cloneQ(q))}}
+  return out}
+function startStage(id,s){go('play',{id,s,mode:'stage',qs:pickBank([stageBank(id,s)],STAGE_Q),i:0,view:0,rec:[],ok:0,score:0,streak:0,picked:null,t0:Date.now()})}
 function startQuiz(id){const b=BAB[id],order=shuf([...b.st.keys()]);const tl=(b.tahun===1?30:25)*1000;
-  go('play',{id,s:-1,mode:'quiz',qs:makeSet(i=>b.st[order[i%order.length]],QUIZ_Q),i:0,view:0,rec:[],ok:0,score:0,streak:0,picked:null,tl,left:tl,t0:Date.now(),after:startTimer})}
+  go('play',{id,s:-1,mode:'quiz',qs:pickBank(order.map(s=>stageBank(id,s)),QUIZ_Q),i:0,view:0,rec:[],ok:0,score:0,streak:0,picked:null,tl,left:tl,t0:Date.now(),after:startTimer})}
 function startTimer(){stopTimer();const t=++tok;let last=Date.now();timer=setInterval(()=>{if(t!==tok)return;const now=Date.now();V.left-=now-last;last=now;const el=document.getElementById('tb');if(el)el.style.width=Math.max(0,100*V.left/V.tl)+'%';if(V.left<=0){stopTimer();answer(-1)}},100)}
 function answer(k){
   if(V.v!=='play'||V.picked!=null||V.view!==V.i)return;stopTimer();stopVoice();const q=V.qs[V.i],ok=k===q.ans;V.picked=k;V.right=ok;let last=0;
