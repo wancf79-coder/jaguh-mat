@@ -354,7 +354,7 @@ clock(p){const h=ri(1,12),m=p.mode==='h'?0:p.mode==='half'?pick([0,30]):ri(0,11)
   const c=[f(mm,(h%12)*5),f(h%12+1,m),f((h+10)%12+1,m),f(h,(m+30)%60),f(h,(60-m)%60),f(h,(m+5)%60)];
   if(p.ampm){const pm=Math.random()<.5,L=pm?T('petang','p.m.'):T('pagi','a.m.'),O=pm?T('pagi','a.m.'):T('petang','p.m.');const g=(t,l)=>T(t+' '+l.ms,t+' '+l.en);
     const ctx=pm?T('Waktu ini ialah selepas tengah hari.','This time is in the afternoon.'):T('Waktu ini ialah sebelum tengah hari.','This time is in the morning.');
-    return mc({q:ctx,vis:clockSvg(h,m)},g(f(h,m),L),[g(f(h,m),O),g(c[1],L),g(c[0],L),g(c[3],L)])}
+    return mc({q:T(ctx.ms+' Apakah waktu yang ditunjukkan?',ctx.en+' What time is shown?'),vis:clockSvg(h,m)},g(f(h,m),L),[g(f(h,m),O),g(c[1],L),g(c[0],L),g(c[3],L)])}
   return mc({q:T('Apakah waktu yang ditunjukkan?','What time is shown?'),vis:clockSvg(h,m)},f(h,m),c)},
 tconv(p){const U=[[T('jam','hours'),T('minit','minutes'),60],[T('hari','days'),T('jam','hours'),24],[T('minggu','weeks'),T('hari','days'),7],[T('tahun','years'),T('bulan','months'),12],[T('minit','minutes'),T('saat','seconds'),60]].slice(0,p.n||4);
   const u=pick(U),n=ri(1,p.max||5);

@@ -578,7 +578,7 @@ clock(p){const h=ri(1,12),m=p.mode==='h'?0:p.mode==='half'?pick([0,30]):ri(0,11)
   const c=[f(mm,(h%12)*5),f(h%12+1,m),f((h+10)%12+1,m),f(h,(m+30)%60),f(h,(60-m)%60),f(h,(m+5)%60)];
   if(p.ampm){const pm=Math.random()<.5,L=pm?T('petang','p.m.'):T('pagi','a.m.'),O=pm?T('pagi','a.m.'):T('petang','p.m.');const g=(t,l)=>T(t+' '+l.ms,t+' '+l.en);
     const ctx=pm?T('Waktu ini ialah selepas tengah hari.','This time is in the afternoon.'):T('Waktu ini ialah sebelum tengah hari.','This time is in the morning.');
-    return mc({q:ctx,vis:clockSvg(h,m)},g(f(h,m),L),[g(f(h,m),O),g(c[1],L),g(c[0],L),g(c[3],L)])}
+    return mc({q:T(ctx.ms+' Apakah waktu yang ditunjukkan?',ctx.en+' What time is shown?'),vis:clockSvg(h,m)},g(f(h,m),L),[g(f(h,m),O),g(c[1],L),g(c[0],L),g(c[3],L)])}
   return mc({q:T('Apakah waktu yang ditunjukkan?','What time is shown?'),vis:clockSvg(h,m)},f(h,m),c)},
 tconv(p){const U=[[T('jam','hours'),T('minit','minutes'),60],[T('hari','days'),T('jam','hours'),24],[T('minggu','weeks'),T('hari','days'),7],[T('tahun','years'),T('bulan','months'),12],[T('minit','minutes'),T('saat','seconds'),60]].slice(0,p.n||4);
   const u=pick(U),n=ri(1,p.max||5);
@@ -852,27 +852,52 @@ function beep(kind){if(!ST.sound)return;try{AC=AC||new(window.AudioContext||wind
 const DEN_EN={2:['half','halves'],3:['third','thirds'],4:['quarter','quarters'],5:['fifth','fifths'],6:['sixth','sixths'],7:['seventh','sevenths'],8:['eighth','eighths'],9:['ninth','ninths'],10:['tenth','tenths']};
 const UNIT_MS={mm:'milimeter',cm:'sentimeter',m:'meter',kg:'kilogram',g:'gram',ml:'mililiter',l:'liter'};
 const UNIT_EN={mm:'millimetres',cm:'centimetres',m:'metres',kg:'kilograms',g:'grams',ml:'millilitres',l:'litres'};
+/* Skrip suara: baca ARAHAN/SOALAN sahaja. Nombor, susunan, tanda & penukaran yang
+   dipaparkan pada skrin TIDAK dibaca (kecuali operasi asas "a + b = ?"). */
+const SAY_MS=[
+  [/^Nombor (sebelum|selepas) (.+) ialah \.\.\.$/,'Apakah nombor $1 $2?'],
+  [/^(.+) (lebih|kurang) daripada (.+) ialah \.\.\.$/,'Berapakah $1 $2 daripada $3?'],
+  [/^Dua hari (sebelum|selepas) (.+) ialah \.\.\.$/,'Dua hari $1 $2 ialah hari apa?'],
+  [/^Hari (sebelum|selepas) (.+) ialah \.\.\.$/,'Apakah hari $1 $2?'],
+  [/^Bulan (sebelum|selepas) (.+) ialah \.\.\.$/,'Apakah bulan $1 $2?'],
+  [/^Bulan ke-(\d+) dalam setahun ialah \.\.\.$/,'Apakah bulan ke-$1 dalam setahun?'],
+  [/^(.+) daripada (.+) ialah \.\.\.$/,'Berapakah $1 daripada $2?'],
+  [/^Digit (.+) dalam (.+) berada di tempat \.\.\.$/,'Digit $1 dalam $2 berada di nilai tempat apa?'],
+  [/^(.+) pada waktu \.\.\.$/,(m,a)=>'Pada waktu apakah '+a.charAt(0).toLowerCase()+a.slice(1)+'?'],
+  [/^(.+?) = \? (.+)$/,'$1 sama dengan berapa $2?'],
+];
+const SAY_EN=[
+  [/^Two days (before|after) (.+) is \.\.\.$/,'What day is two days $1 $2?'],
+  [/^The (day|month) (before|after) (.+) is \.\.\.$/,'What is the $1 $2 $3?'],
+  [/^The (.+) month of the year is \.\.\.$/,'What is the $1 month of the year?'],
+  [/^The digit (\S+) in (\S+) is in the \.\.\. place\.?$/,'In what place is the digit $1 in $2?'],
+  [/^The sun (rise|set)s in the \.\.\.$/,'When does the sun $1?'],
+  [/^The moon and (.+) appear at \.\.\.$/,'When do the moon and $1 appear?'],
+  [/^We (.+?) (?:at|in the) \.\.\.$/,'When do we $1?'],
+  [/^Pupils (.+?) (?:at|in the) \.\.\.$/,'When do pupils $1?'],
+  [/^(.+) of (.+) is \.\.\.$/,'What is $1 of $2?'],
+  [/^(.+?) = \? (.+)$/,'How many $2 are there in $1?'],
+];
 function sayText(q){
-  const ms=ST.lang==='ms';let t=tr(q.q).replace(/\u00a0/g,'');
+  const ms=ST.lang==='ms';let t=tr(q.q).replace(/ /g,'').trim();
   if(/^[\d\s.]+$/.test(t))t=ms?'Bandingkan dua nombor ini.':'Compare these two numbers.';
-  t=t.replace(/\s*\.\.\.\s*$/,ms?' apa?':' what?').replace(/\s*\.\.\.\s*/g,ms?' apa ':' what ');
-  const opEq=q.eq&&q.eq.replace(/\u00a0/g,'').match(/^([^?=]*[+−×÷][^?=]*?)\s*=\s*\?$/);
-  if(opEq&&/\?$/.test(t)){t=ms?t.replace(/\s*(tambah|tolak|darab|bahagi)?\s*\?$/,' '+opEq[1]+'?'):'What is '+opEq[1]+'?'}
-  else if(q.eq){let e=q.eq.replace(/\u00a0/g,'');
-    if(/^\d+\s+\?\s+\d+$/.test(e))e=e.replace('?',ms?'dengan':'and');
-    e=e.replace(/=\s*\?\s*$/,'=#').replace(/\?/g,ms?'berapa':'what').replace('=#',ms?' sama dengan berapa?':' equals what?').replace(/=/g,ms?' sama dengan ':' equals ');
-    t+=' '+e}
-  t=t.replace(/RM(\d+)\.(\d\d)/g,(m,a,b)=>a+' ringgit '+(+b)+' sen').replace(/RM(\d+)/g,'$1 ringgit');
+  const opEq=q.eq&&q.eq.replace(/ /g,'').match(/^(\d+\s*[+−×÷]\s*\d+)\s*=\s*\?$/);
+  if(opEq&&/^(Berapakah hasil|What is the (sum|difference|product|quotient))/.test(t))t=ms?'Berapakah hasil '+opEq[1]+'?':'What is '+opEq[1]+'?';
+  for(const [re,rep] of (ms?SAY_MS:SAY_EN))if(re.test(t)){t=t.replace(re,rep);break}
+  t=t.replace(/\s*\.\.\.\s*/g,ms?' apa ':' what ').replace(/["“”]/g,'');
+  t=t.replace(/RM(\d+)\.(\d\d)/g,(m,a,b)=>(+a?a+' ringgit ':'')+(+b?(+b)+' sen':'')).replace(/RM(\d+)/g,'$1 ringgit');
   t=t.replace(/(\d+)\/(\d+)/g,(m,a,b)=>{a=+a;b=+b;if(ms)return wMs(a)+' per'+wMs(b);return DEN_EN[b]?(a===1?'one '+DEN_EN[b][0]:wEn(a)+' '+DEN_EN[b][1]):a+' over '+b});
   t=t.replace(/(\d|berapa|what)\s?(mm|cm|kg|ml|m|g|l)\b/g,(m,d,u)=>d+' '+(ms?UNIT_MS:UNIT_EN)[u]);
+  t=t.replace(/(\d+) (h|min)\b/g,(m,n,u)=>n+' '+(u==='h'?(+n===1?'hour':'hours'):(+n===1?'minute':'minutes')));
   t=t.replace(/\+/g,ms?' tambah ':' plus ').replace(/−/g,ms?' tolak ':' minus ').replace(/×/g,ms?' darab ':' times ').replace(/÷/g,ms?' bahagi ':' divided by ').replace(/%/g,ms?' peratus':' percent');
-  t=t.replace(/(\d)\s*:\s*(\d+)\)/g,(m,a,b)=>a+(ms?' berbanding ':' to ')+b+')');
-  if(!ms)t=t.replace(/^The digit (\S+) in (\S+) is in the what place\.?$/,'In which place is the digit $1 in $2?');
+  t=t.replace(/\s*\(\s*(nisbah|ratio)\s*(\d+)\s*:\s*(\d+)\)/g,(m,w,a,b)=>', '+(ms?'nisbah '+a+' berbanding '+b:'ratio '+a+' to '+b));
+  t=t.replace(/(\d+):(\d\d) (am|pm)/g,(m,h,mm,ap)=>h+(+mm?':'+mm:" o'clock")+' '+(ap==='am'?'a.m.':'p.m.'));
+  if(!ms)t=t.replace(/\b(\d)(st|nd|rd|th)\b/g,(m,d)=>['','first','second','third','fourth','fifth','sixth','seventh','eighth','ninth'][+d]);
   t=ms?msNums(t):enNums(t);
-  return t.replace(/\s+/g,' ').trim().slice(0,320);
+  return t.replace(/\s+/g,' ').replace(/\s+([?.,!])/g,'$1').replace(/\.{2,}/g,'.').trim().slice(0,320);
 }
 function msNums(t){
-  const W=n=>wMs(+n);
+  const W=n=>+n===0?'sifar':wMs(+n);
   return t.replace(/\bke-(\d+)/g,(m,n)=>+n===1?'pertama':'ke'+W(n))
    .replace(/(\d{1,2}):(\d\d)/g,(m,h,mm)=>'pukul '+W(h)+(+mm?' '+W(mm)+' minit':''))
    .replace(/(\d+)\.(\d+)/g,(m,a,b)=>W(a)+' perpuluhan '+b.split('').map(W).join(' '))
@@ -880,7 +905,7 @@ function msNums(t){
 }
 function enNums(t){ // nombor besar ditulis penuh supaya disebut betul (bukan 'two three four five')
   return t.replace(/(\d+)\.(\d+)/g,(m,a,b)=>wEn(+a)+' point '+b.split('').map(d=>wEn(+d)).join(' '))
-   .replace(/(^|[^\d:])(\d{3,5})(?![\d:])/g,(m,p,n)=>p+wEn(+n).replace(' thousand ',' thousand, '));
+   .replace(/(^|[^\d:])(\d{3,5})(?![\d:])/g,(m,p,n)=>p+wEn(+n).replace(/ thousand (?!and )/,' thousand, '));
 }
 const TTSC=new Map();let curAudio=null,AUD=null,VSTAT='';
 const SILENT='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=';
