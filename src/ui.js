@@ -81,7 +81,16 @@ function sayText(q){
   t=t.replace(/(\d+)\/(\d+)/g,(m,a,b)=>{a=+a;b=+b;if(ms)return wMs(a)+' per'+wMs(b);return DEN_EN[b]?(a===1?'one '+DEN_EN[b][0]:wEn(a)+' '+DEN_EN[b][1]):a+' over '+b});
   t=t.replace(/(\d|berapa|what)\s?(mm|cm|kg|ml|m|g|l)\b/g,(m,d,u)=>d+' '+(ms?UNIT_MS:UNIT_EN)[u]);
   t=t.replace(/\+/g,ms?' tambah ':' plus ').replace(/−/g,ms?' tolak ':' minus ').replace(/×/g,ms?' darab ':' times ').replace(/÷/g,ms?' bahagi ':' divided by ').replace(/%/g,ms?' peratus':' percent');
+  t=t.replace(/(\d)\s*:\s*(\d+)\)/g,(m,a,b)=>a+(ms?' berbanding ':' to ')+b+')');
+  if(ms)t=msNums(t);
   return t.replace(/\s+/g,' ').trim().slice(0,320);
+}
+function msNums(t){
+  const W=n=>wMs(+n);
+  return t.replace(/\bke-(\d+)/g,(m,n)=>+n===1?'pertama':'ke'+W(n))
+   .replace(/(\d{1,2}):(\d\d)/g,(m,h,mm)=>'pukul '+W(h)+(+mm?' '+W(mm)+' minit':''))
+   .replace(/(\d+)\.(\d+)/g,(m,a,b)=>W(a)+' perpuluhan '+b.split('').map(W).join(' '))
+   .replace(/\d+/g,n=>W(n));
 }
 const TTSC=new Map();let curAudio=null,AUD=null,VSTAT='';
 const SILENT='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=';

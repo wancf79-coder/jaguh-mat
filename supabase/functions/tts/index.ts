@@ -6,9 +6,11 @@ const sb = createClient(SB_URL, Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!);
 const GEMINI_KEY = Deno.env.get("GEMINI_API_KEY") ?? "";
 const MODELS = ["gemini-3.1-flash-tts-preview", "gemini-2.5-flash-preview-tts"];
 const VOICES: Record<string, string> = { f: "Sulafat", m: "Achird" }; // cikgu perempuan / cikgu lelaki
+const VER = "v2"; // tukar untuk buang cache lama
+const LANGCODE: Record<string, string> = { ms: "ms-MY", en: "en-GB" };
 const STYLE: Record<string, string> = {
-  ms: "Baca ayat berikut dalam Bahasa Melayu Malaysia dengan suara seorang cikgu sekolah rendah yang mesra, jelas dan tenang, sedikit perlahan untuk murid berumur 7 hingga 9 tahun. Sebut nombor dengan jelas:",
-  en: "Read the following in clear English like a friendly, calm Malaysian primary school teacher speaking slightly slowly to pupils aged 7 to 9. Say the numbers clearly:",
+  ms: "Baca ayat berikut dalam Bahasa Melayu Malaysia standard dengan sebutan Malaysia (BUKAN Bahasa Indonesia), dengan suara seorang cikgu sekolah rendah di Malaysia yang mesra, jelas dan tenang, sedikit perlahan untuk murid berumur 7 hingga 9 tahun. Baca perkataan tepat seperti yang ditulis, jangan tukar atau tambah apa-apa:",
+  en: "Read the following in standard British English with a neutral, clear accent, like a friendly, calm primary school teacher speaking slightly slowly to pupils aged 7 to 9. Read the words exactly as written, without adding anything:",
 };
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -34,21 +36,25 @@ function wav(pcm: Uint8Array, rate = 24000) {
 async function gen(text: string, lang: string, voice: string) {
   let last = "";
   for (const model of MODELS) {
+   for (const withLang of [true, false]) {
+    const speechConfig: any = { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } };
+    if (withLang) speechConfig.languageCode = LANGCODE[lang];
     const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
       method: "POST",
       headers: { "Content-Type": "application/json", "x-goog-api-key": GEMINI_KEY },
       body: JSON.stringify({
         contents: [{ parts: [{ text: `${STYLE[lang]}\n${text}` }] }],
-        generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voice } } } },
+        generationConfig: { responseModalities: ["AUDIO"], speechConfig },
       }),
     });
-    if (!r.ok) { last = `${model}: ${r.status} ${(await r.text()).slice(0, 200)}`; continue; }
+    if (!r.ok) { last = `${model}: ${r.status} ${(await r.text()).slice(0, 200)}`; if (r.status === 400 && withLang) continue; break; }
     const j = await r.json();
     const b64 = j?.candidates?.[0]?.content?.parts?.find((p: any) => p.inlineData)?.inlineData?.data;
     if (!b64) { last = `${model}: no audio`; continue; }
     const bin = atob(b64), pcm = new Uint8Array(bin.length);
     for (let i = 0; i < bin.length; i++) pcm[i] = bin.charCodeAt(i);
     return wav(pcm);
+   }
   }
   throw new Error(last);
 }
@@ -61,7 +67,7 @@ Deno.serve(async (req) => {
     const t = String(text ?? "").trim();
     if (!t || t.length > 320 || !/^[\p{L}\p{N}\s.,:;!?'"()+\-−×÷=%\/–]+$/u.test(t)) return json({ error: "bad_text" }, 400);
     const L = lang === "en" ? "en" : "ms", V = v === "m" ? "m" : "f";
-    const path = `${V}/${L}/${await sha(V + "|" + L + "|" + t)}.wav`;
+    const path = `${VER}/${V}/${L}/${await sha(VER + "|" + V + "|" + L + "|" + t)}.wav`;
     const pub = `${SB_URL}/storage/v1/object/public/tts/${path}`;
     const head = await fetch(pub, { method: "HEAD" });
     if (head.ok) return json({ url: pub, cached: true });
