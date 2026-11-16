@@ -95,16 +95,16 @@ function msNums(t){
 const TTSC=new Map();let curAudio=null,AUD=null,VSTAT='';
 const SILENT='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=';
 function unlockAudio(){if(AUD)return;try{AUD=new Audio();AUD.src=SILENT;const p=AUD.play();if(p&&p.catch)p.catch(()=>{})}catch(e){}}
-function setV(st){VSTAT=st;const b=document.querySelector('.say');if(b){b.classList.toggle('busy',st==='load');b.classList.toggle('off',st==='err')}const n=document.getElementById('vnote');if(n)n.hidden=st!=='err'}
+function setV(st){VSTAT=st;const b=document.querySelector('.say');if(b){b.classList.toggle('busy',st==='load');b.classList.toggle('off',st==='err'||st==='quota')}const n=document.getElementById('vnote');if(n){n.hidden=!(st==='err'||st==='quota');n.textContent=tr(st==='quota'?T('Suara cikgu sedang berehat sekejap. Cuba tekan 🔊 sebentar lagi.','The teacher’s voice is taking a short break. Try 🔊 again soon.'):T('Suara tidak dapat dimuatkan. Semak sambungan internet.','Voice can’t load. Check your internet connection.'))}}
 function ttsUrl(text,v){const k=v+ST.lang+text;if(TTSC.has(k))return TTSC.get(k);
   const p=fetch(CFG.url+'/functions/v1/tts',{method:'POST',headers:{'Content-Type':'application/json',apikey:CFG.key},body:JSON.stringify({text,lang:ST.lang,v})})
-    .then(r=>r.ok?r.json():Promise.reject(r.status)).then(j=>j.url);TTSC.set(k,p);p.catch(()=>TTSC.delete(k));return p}
+    .then(async r=>{if(r.ok)return(await r.json()).url;const j=await r.json().catch(()=>({}));throw new Error(/429|quota|no_key/i.test(j.error||'')?'QUOTA':'NET')});TTSC.set(k,p);p.catch(()=>TTSC.delete(k));return p}
 function stopVoice(){if(curAudio){try{curAudio.pause()}catch(e){}curAudio=null}}
 function speakView(){const vi=V.view??V.i;if(vi===V.i&&V.picked==null)return speakQ(vi);const q=V.qs[vi];ttsUrl(sayText(q),vi%2?'m':'f').then(u=>{stopVoice();curAudio=AUD||new Audio();curAudio.src=u;const p=curAudio.play();if(p&&p.catch)p.catch(()=>{})}).catch(()=>setV('err'))}
 function speakQ(i){if(!ST.sound||!CFG.url)return;const q=V.qs[i],v=i%2?'m':'f';
   setV('load');
-  ttsUrl(sayText(q),v).then(u=>{if(V.v!=='play'||V.i!==i||V.picked!=null)return;stopVoice();setV('');curAudio=AUD||new Audio();curAudio.src=u;const p=curAudio.play();if(p&&p.catch)p.catch(()=>setV('tap'))}).catch(()=>{if(V.v==='play'&&V.i===i)setV('err')});
-  prefetch(i+1,2)}
+  ttsUrl(sayText(q),v).then(u=>{if(V.v!=='play'||V.i!==i||V.picked!=null)return;stopVoice();setV('');curAudio=AUD||new Audio();curAudio.src=u;const p=curAudio.play();if(p&&p.catch)p.catch(()=>setV('tap'))}).catch(e=>{if(V.v==='play'&&V.i===i)setV(e&&e.message==='QUOTA'?'quota':'err')});
+  prefetch(i+1,1)}
 function prefetch(from,k){if(!ST.sound||!CFG.url||!V.qs)return;for(let j=from;j<from+k&&j<V.qs.length;j++)ttsUrl(sayText(V.qs[j]),j%2?'m':'f').catch(()=>{})}
 
 /* ---------- online ---------- */
@@ -129,7 +129,7 @@ const app=document.getElementById('app');
 let V={v:'home'},timer=null,tok=0;
 function go(v,p){stopTimer();stopVoice();V=Object.assign({v},p||{});render();window.scrollTo(0,0)}
 function stopTimer(){if(timer){clearInterval(timer);timer=null}}
-function render(){app.innerHTML=bar()+(VIEWS[V.v]||VIEWS.home)();const f=app.querySelector('[autofocus]');if(f&&V.v!=='play')f.focus();if(V.after){const a=V.after;V.after=null;a()}if(V.v==='play'&&V.picked==null&&V.view===V.i&&V.saidI!==V.i){if(V.i===0)prefetch(1,2);V.saidI=V.i;VSTAT='';speakQ(V.i)}}
+function render(){app.innerHTML=bar()+(VIEWS[V.v]||VIEWS.home)();const f=app.querySelector('[autofocus]');if(f&&V.v!=='play')f.focus();if(V.after){const a=V.after;V.after=null;a()}if(V.v==='play'){if(VSTAT==='err'||VSTAT==='quota')setV(VSTAT)}if(V.v==='play'&&V.picked==null&&V.view===V.i&&V.saidI!==V.i){if(V.i===0)prefetch(1,1);V.saidI=V.i;VSTAT='';speakQ(V.i)}}
 function bar(){
   const back=V.v==='home'?'':`<button class="ic" data-a="back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
   return `<header class="top">${back}<button class="brand" data-a="home"><svg viewBox="0 0 40 40"><use href="#i-logo"/></svg><span>Jaguh Mat</span></button>
@@ -173,7 +173,7 @@ play(){
   const arrow=(a,ok,d,lbl)=>`<button class="arw" data-a="${ok?a:'none'}" ${ok?'':'disabled'} aria-label="${lbl}"><svg viewBox="0 0 24 24"><path d="${d}" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
   const head=crumb+`<div class="ph">${arrow('prev',canBack,'M15 5l-7 7 7 7',tr(T('Soalan sebelum','Previous question')))}<span class="pq">${tr(UI.q)} ${vi+1}/${V.qs.length}${past?` <em>${tr(T('ulang lihat','review'))}</em>`:''}</span>${quiz?`<span class="pts">${fmtN(V.score)}</span>`:`<span class="pts">${V.ok} ✓</span>`}${arrow('next',canFwd,'M9 5l7 7-7 7',tr(T('Seterusnya','Next')))}</div>
   <div class="prog"><i style="width:${100*(V.i+(V.rec[V.i]?1:0))/V.qs.length}%"></i></div>${quiz&&!past&&!done?`<div class="timer"><i id="tb" style="width:${100*V.left/V.tl}%"></i></div>`:''}`;
-  return `<main class="wrap play ${past?'past':''}" style="--c:${TCOL[BAB[V.id].tahun]}">${head}<section class="card"><div class="qrow"><p class="qt">${rich(q.q)}</p>${ST.sound?`<button class="say ${VSTAT==='load'&&!past?'busy':''}" data-a="say" aria-label="${tr(T('Dengar soalan','Listen'))}"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8a5 5 0 010 8M18.5 5.5a9 9 0 010 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>`:''}</div>${q.eq?`<p class="eq">${rich(q.eq)}</p>`:''}${q.vis?`<div class="vbox">${tr(q.vis)}</div>`:''}${ST.sound?`<p class="vnote" id="vnote" ${VSTAT==='err'?'':'hidden'}>${tr(T('Suara tidak dapat dimuatkan di sini. Buka game melalui pautan rasmi atau fail index.html.','Voice can’t load here. Open the game from its official link or the index.html file.'))}</p>`:''}</section>
+  return `<main class="wrap play ${past?'past':''}" style="--c:${TCOL[BAB[V.id].tahun]}">${head}<section class="card"><div class="qrow"><p class="qt">${rich(q.q)}</p>${ST.sound?`<button class="say ${VSTAT==='load'&&!past?'busy':''}" data-a="say" aria-label="${tr(T('Dengar soalan','Listen'))}"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8a5 5 0 010 8M18.5 5.5a9 9 0 010 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>`:''}</div>${q.eq?`<p class="eq">${rich(q.eq)}</p>`:''}${q.vis?`<div class="vbox">${tr(q.vis)}</div>`:''}${ST.sound?`<p class="vnote" id="vnote" hidden></p>`:''}</section>
   <div class="opts ${q.opts.some(o=>!/^<svg/.test(tr(o))&&tr(o).length>14)?'wide':''} ${q.opts.some(o=>/^<svg/.test(tr(o)))?'pics':''}">${opts}</div>${fb}</main>`;
 },
 result(){
