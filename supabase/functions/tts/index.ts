@@ -14,12 +14,12 @@ const VER = "v3"; // tukar untuk buang cache lama
 const LANGCODE: Record<string, string> = { ms: "ms-MY", en: "en-GB" };
 const STYLE: Record<string, string> = {
   ms: "Baca dengan suara cikgu sekolah rendah Malaysia yang mesra dan jelas, dalam Bahasa Melayu Malaysia standard (bukan Bahasa Indonesia), dengan rentak agak laju dan bertenaga seperti cikgu yang bersemangat (jangan perlahan), dengan sebutan baku, sebut nombor dengan lancar, dan sebut setiap perkataan dengan jelas dan lengkap, sekali sahaja:",
-  en: "Say in standard British English, like a friendly primary school teacher, at a brisk, lively pace (not slow). Pronounce every word clearly and completely, including the first word (for example the W in \"Which\"):",
+  en: "Say in standard British English, like a friendly primary school teacher, at a brisk, lively pace (not slow). Pronounce every word clearly and completely, including the first word:",
 };
 const FEM = ["Sulafat", "Kore", "Aoede", "Leda", "Despina", "Achernar", "Callirrhoe", "Autonoe", "Erinome", "Vindemiatrix", "Laomedeia"];
 const STYLE_F: Record<string, string> = {
   ms: "Cakap dengan laju dan lancar seperti perbualan harian biasa (jangan perlahan, jangan berhenti-henti, sebut nombor panjang dalam satu nafas). Suara cikgu perempuan sekolah rendah Malaysia yang lembut dan mesra, dalam Bahasa Melayu Malaysia standard dengan sebutan baku (bukan Bahasa Indonesia). Sebut setiap perkataan dengan jelas dan lengkap, sekali sahaja:",
-  en: "Speak quickly and fluently like normal everyday conversation (not slow, no pauses, say long numbers in one breath). Voice of a gentle, warm female primary school teacher, standard British English. Pronounce every word clearly and completely, including the first word (for example the W in \"Which\"):",
+  en: "Speak quickly and fluently like normal everyday conversation (not slow, no pauses, say long numbers in one breath). Voice of a gentle, warm female primary school teacher, standard British English. Pronounce every word clearly and completely, including the first word:",
 };
 const CALM: Record<string, string> = {
   ms: " Bacaan sebelum ini terlalu laju — kali ini cakap dengan rentak sederhana yang tenang dan jelas.",
