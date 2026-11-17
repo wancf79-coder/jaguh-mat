@@ -480,9 +480,9 @@ orderKPM(p){const s=new Set();while(s.size<4)s.add(ri(p.min||1,p.max));const a=[
 cmpStory(p){const n1=nextName();let n2=nextName();if(n2===n1)n2=nextName();const th=nextObj();let a=ri(10,p.max||99),b;do{b=ri(10,p.max||99)}while(b===a);const more=Math.random()<.5;
   const ans=(more?a>b:a<b)?n1:n2;
   return mc({q:T(`${n1} ada ${a} ${th.ms}. ${n2} ada ${b} ${th.ms}. Siapakah yang ada ${more?'lebih banyak':'lebih sedikit'} ${th.ms}?`,`${n1} has ${a} ${th.en}. ${n2} has ${b} ${th.en}. Who has ${more?'more':'fewer'} ${th.en}?`)},ans,[n1,n2])},
-patternKPM(p){const st=pick(p.steps),down=Math.random()<.4,len=5,s0=ri(0,Math.max(0,(p.max||100)-st*(len-1)));
+patternKPM(p){const st=deck('pst',p.steps),down=deck('pdn',[1,0,0,1,0])===1,len=5,s0=ri(0,Math.max(0,(p.max||100)-st*(len-1)));
   let seq=[...Array(len)].map((_,i)=>s0+i*st);if(down)seq.reverse();const h=ri(1,len-1),ans=seq[h];
-  return mc({q:T('Apakah nombor yang tertinggal?','What is the missing number?'),eq:seq.map((x,i)=>i===h?'?':x).join(', ')},ans,near(ans,[st,-st,1,-1,2*st,10,-10],0,100))},
+  return mc({q:T('Apakah nombor yang tertinggal?','What is the missing number?'),eq:seq.map((x,i)=>i===h?'?':x).join(', ')},ans,near(ans,[1,-1,2,-2,10,-10,st+1,-st-1,5,-5],1,100).filter(x=>!seq.includes(x)))},
 estimate(p){const tg=pick(p.targets||[20,30,40,50]),n=tg+ri(-2,2);const ref=jarSvg(10);const big=jarSvg(n);
   const vis=svg(420,232,`<g transform="translate(10,4) scale(.62)">${ref}</g><text x="66" y="150" text-anchor="middle" font-size="14" font-weight="800" fill="#123a8f">10 butang</text><g transform="translate(180,0)">${big}</g><text x="270" y="226" text-anchor="middle" font-size="16" font-weight="800" fill="#123a8f">? butang</text>`,460);
   const f=x=>T(`lebih kurang ${x}`,`about ${x}`);
@@ -509,7 +509,7 @@ const CH={
    S('Kombinasi nombor','Number bonds',['bond',{min:3,max:10}]),
    S('Nombor hingga 100 & nilai tempat','Numbers to 100 & place value',['rods',{cap:5}],['abacus',{cap:5}],['tensOnes',{cap:5}],['placeT1',{cap:5}]),
    S('Lebih, kurang & susunan','More, less & order',['seqRel',{max:100,cap:8}],['orderKPM',{max:100,cap:5}],['cmpStory',{max:99,cap:7}]),
-   S('Pola, anggaran & bundar','Patterns, estimation & rounding',['patternKPM',{steps:[1,2,4,5,10],max:100}],['estimate',{}],['round',{min:5,max:99,to:[10],pos:1}])]},
+   S('Pola, anggaran & bundar','Patterns, estimation & rounding',['patternKPM',{steps:[1,2,4,5,10],max:100,cap:10}],['estimate',{cap:4}],['round',{min:11,max:99,to:[10],pos:1,cap:6}])]},
  {t:T('Tambah dan Tolak','Addition and Subtraction'),st:[
    S('Fakta asas tambah','Basic addition facts',['add',{basic:1,max:18}]),
    S('Tambah hingga 100','Add within 100',['add',{max:100,min:10,carry:false}],['add',{max:100,min:10,carry:true}]),

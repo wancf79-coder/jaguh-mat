@@ -362,3 +362,8 @@ function semakView(id){const b=BAB[id];if(!b){app.innerHTML='<p style="padding:2
     bank.forEach(q=>{n++;h+=`<div style="background:#fff;border-radius:16px;padding:12px 14px;margin-bottom:10px;box-shadow:0 2px 0 #d6e2f5"><div style="font-weight:800">${n}. ${esc(tr(q.q))} <span style="font-size:12px;color:${q.vo==='m'?'#1f5fe0':'#d0458a'}">${q.vo==='m'?'Achird':'Kore'}</span></div>${q.eq?`<div style="font:800 22px 'Baloo 2',sans-serif;margin:6px 0">${esc(q.eq)}</div>`:''}${q.vis?`<div style="margin:6px 0">${q.vis}</div>`:''}<div style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0">${q.opts.map((o,i)=>`<span style="padding:6px 12px;border-radius:10px;border:2px solid ${i===q.ans?'#18a058':'#d6e2f5'};background:${i===q.ans?'#eafaf1':'#fff'};font-weight:700">${typeof o==='string'&&o.startsWith('<svg')?o:esc(tr(o))}</span>`).join('')}</div><div style="font-size:13px;color:#5b6787">🔊 ${esc(sayText(q))}</div></div>`})});
   app.innerHTML=h+'</div>'}
 {const m=location.search.match(/[?&]semak=(t\db\d+)/);if(m)semakView(m[1]);else{render();setTimeout(flushPending,3000)}}
+/* Kemas kini automatik: jika versi baru diterbitkan, muat semula app (bukan semasa murid sedang menjawab) */
+if(!/jsdom/i.test(navigator.userAgent)){const BUILD='__BUILD__';let busy=false;
+ const chk=async()=>{if(busy||location.search.includes('semak')||(V&&V.v==='play'))return;busy=true;
+  try{const r=await fetch('ver.txt?t='+Date.now(),{cache:'no-store'});if(r.ok){const v=(await r.text()).trim();if(v&&v!==BUILD&&/^[0-9a-f]{10}$/.test(v))location.reload()}}catch(e){}busy=false};
+ document.addEventListener('visibilitychange',()=>{if(!document.hidden)chk()});setInterval(chk,120000);setTimeout(chk,4000)}
