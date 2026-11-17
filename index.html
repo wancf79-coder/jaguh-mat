@@ -686,8 +686,8 @@ ratio(){const r=Math.random(),th=pick([T('krayon','crayons'),T('pensel','pencils
 };
 /* ===== Tahun 1 · Bab 1 (ikut Buku Teks KPM: Nombor hingga 100) ===== */
 const BTN=['#ef5b8c','#3b82f6','#22b573','#f2b705','#a66cff','#ff8a3d'];
-function boxObjs(n,kind,label,w,per,s){ // kumpulan objek dalam kotak berlabel
-  per=per||5;s=s||34;const rows=Math.max(1,Math.ceil(n/per)),bw=w||per*s+20,bh=rows*s+(label?44:24),is=s-4,x0=(bw-per*s)/2+2;let g=`<rect x="2" y="2" width="${bw-4}" height="${bh-4}" rx="14" fill="#ffffff" stroke="#c9d6ee" stroke-width="3"/>`;
+function boxObjs(n,kind,label,w,per,s,mr){ // kumpulan objek dalam kotak berlabel
+  per=per||5;s=s||34;const rows=Math.max(1,mr||0,Math.ceil(n/per)),bw=w||per*s+20,bh=rows*s+(label?44:24),is=s-4,x0=(bw-per*s)/2+2;let g=`<rect x="2" y="2" width="${bw-4}" height="${bh-4}" rx="14" fill="#ffffff" stroke="#c9d6ee" stroke-width="3"/>`;
   if(label)g+=`<text x="${bw/2}" y="26" text-anchor="middle" font-size="18" font-weight="800" fill="#123a8f">${label}</text>`;
   for(let i=0;i<n;i++){const r=Math.floor(i/per),c=i%per;g+=`<use href="#i-${kind}" x="${x0+c*s}" y="${(label?34:12)+r*s}" width="${is}" height="${is}"/>`}
   return{g,w:bw,h:bh};
@@ -708,7 +708,7 @@ function jarSvg(n,seed){ // balang berisi butang (rawak tapi tidak bertindih)
 Object.assign(G,{
 banyak(p){const A=nextItem(),B=Math.random()<.5?A:nextItem();const same=Math.random()<.2;
   let a=ri(1,p.max||10),b;do{b=ri(1,p.max||10)}while(!same&&b===a);if(same)b=a;
-  const ga=boxObjs(a,A.id,'Kumpulan A',204,4,48),gb=boxObjs(b,B.id,'Kumpulan B',204,4,48),h=Math.max(ga.h,gb.h);
+  const mr=Math.ceil(Math.max(a,b)/4),ga=boxObjs(a,A.id,'Kumpulan A',204,4,48,mr),gb=boxObjs(b,B.id,'Kumpulan B',204,4,48,mr),h=Math.max(ga.h,gb.h);
   const vis=svg(420,h,`<g>${ga.g}</g><g transform="translate(216,0)">${gb.g}</g>`,520);
   const o=[T('Kumpulan A','Group A'),T('Kumpulan B','Group B'),T('Sama banyak','The same')];
   const t=pick(['lebih','kurang']);const ans=a===b?o[2]:(t==='lebih'?(a>b?o[0]:o[1]):(a<b?o[0]:o[1]));
@@ -716,7 +716,7 @@ banyak(p){const A=nextItem(),B=Math.random()<.5?A:nextItem();const same=Math.ran
 countBox(p){const k=nextItem();const n=ri(p.min||1,p.max);const b=boxObjs(n,k.id,'',5*46+20,5,46);
   return mc({q:T(`Berapakah bilangan ${k.t.ms} di dalam kotak?`,`How many ${k.t.en} are in the box?`),vis:svg(b.w,b.h,b.g,340)},n,near(n,[-2,-1,1,2,3,-3,10,-10],1,p.max))},
 sifar(p){const k=nextItem(),L=['A','B','C'],z=ri(0,2),ns=L.map((_,i)=>i===z?0:ri(1,6));
-  const bs=ns.map((n,i)=>boxObjs(n,k.id,'Kotak '+L[i],176,3,56)),h=Math.max(...bs.map(b=>b.h));
+  const mr=Math.ceil(Math.max(...ns)/3),bs=ns.map((n,i)=>boxObjs(n,k.id,'Kotak '+L[i],176,3,56,mr)),h=Math.max(...bs.map(b=>b.h));
   const vis=svg(544,h,bs.map((b,i)=>`<g transform="translate(${i*184},0)">${b.g}</g>`).join(''),600);
   const o=L.map(x=>T('Kotak '+x,'Box '+x));
   return mc({q:T(`Kotak manakah ada sifar ${k.t.ms}?`,`Which box has zero ${k.t.en}?`),vis,uk:ns.join('')+k.id},o[z],o)},
