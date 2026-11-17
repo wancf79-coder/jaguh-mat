@@ -60,8 +60,11 @@ let HERR = "", HMODEL = "";
 const HEAR_MODELS = ["gemini-2.5-flash", "gemini-3-flash-preview", "gemini-3.1-flash-preview", "gemini-2.5-flash-lite", "gemini-2.0-flash-001", "gemini-2.5-pro"];
 async function hear(s: Int16Array, rate: number, lang: string) {
   const pcm = new Uint8Array(s.buffer, s.byteOffset, s.byteLength);
+  return hearData("audio/wav", b64(wav(pcm, rate)), lang);
+}
+async function hearData(mime: string, data: string, lang: string) {
   const body = JSON.stringify({ contents: [{ role: "user", parts: [
-    { inlineData: { mimeType: "audio/wav", data: b64(wav(pcm, rate)) } },
+    { inlineData: { mimeType: mime, data } },
     { text: lang === "en" ? "Transcribe this British English audio exactly, word for word, including repeated words. Write every number in words. Output only the transcript." : "Tulis semula audio Bahasa Melayu ini dengan tepat, perkataan demi perkataan, termasuk perkataan yang berulang. Tulis semua nombor dalam perkataan. Keluarkan transkrip sahaja." },
   ] }], generationConfig: { temperature: 0 } });
   const errs: string[] = [];
@@ -241,7 +244,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: CORS });
   if (req.method !== "POST") return json({ error: "method" }, 405);
   try {
-    const { text, lang, v, engine, voice, regen } = await req.json();
+    const { text, lang, v, engine, voice, regen, verify } = await req.json();
     const ALLOWED = ["Sulafat", "Achird", "Kore", "Aoede", "Leda", "Despina", "Achernar", "Callirrhoe", "Autonoe", "Erinome", "Vindemiatrix", "Laomedeia"];
     const VX = typeof voice === "string" && ALLOWED.includes(voice) ? voice : "";
     const t = String(text ?? "").trim();
@@ -251,14 +254,27 @@ Deno.serve(async (req) => {
     const ext = useG ? (VERTEX_KEY ? "mp3" : "wav") : CLOUD_KEY ? "mp3" : "wav";
     const path = `${useG ? "m2" : VER}/${VX ? VX + "/" : ""}${V}/${L}/${await sha(VER + "|" + V + "|" + L + "|" + t)}.${ext}`;
     const pub = `${SB_URL}/storage/v1/object/public/tts/${path}`;
-    const head = await fetch(pub, { method: "HEAD" });
-    if (head.ok && regen !== true) return json({ url: pub, cached: true }); // regen:true = jana semula suara yang rosak
+    const badPath = path.replace(/^m2\//, "m2bad/"), badPub = `${SB_URL}/storage/v1/object/public/tts/${badPath}`;
+    const head = await fetch(pub, regen !== true && verify === true ? {} : { method: "HEAD" });
+    if (head.ok && regen !== true) {
+      if (verify !== true || !VERTEX_KEY) return json({ url: pub, cached: true });
+      // verify:true = dengar semula audio yang sedia ada; jika tak sepadan, jana semula
+      const heard = await hearData("audio/mpeg", b64(new Uint8Array(await head.arrayBuffer())), L);
+      if (heard != null && wer(words(t, L), words(heard, L)) <= (words(t, L).length <= 6 ? 0 : 0.1)) return json({ url: pub, cached: true, verified: true });
+    }
+    if (regen !== true && verify !== true && (await fetch(badPub, { method: "HEAD" })).ok) return json({ error: "qc_failed", review: badPub }, 422);
     if (!CLOUD_KEY && !GEMINI_KEY) return json({ error: "no_key" }, 503);
     let audio: Uint8Array, qc: any = null;
     if (useG && VERTEX_KEY) { const g = await genVertex(t, L, VX || VOICES[V]); audio = g.audio; qc = g.qc; }
     else audio = useG ? await gen(t, L, VOICES[V]) : CLOUD_KEY ? await genCloud(t, L, VOICES[V]) : await gen(t, L, VOICES[V]);
+    if (qc && !qc.ok) { // gagal semakan: JANGAN dimainkan kepada murid; simpan untuk semakan manusia sahaja
+      await sb.storage.from("tts").upload(badPath, audio, { contentType: "audio/mpeg", upsert: true });
+      await sb.storage.from("tts").remove([path]);
+      return json({ error: "qc_failed", review: badPub, qc }, 422);
+    }
     const up = await sb.storage.from("tts").upload(path, audio, { contentType: ext === "mp3" ? "audio/mpeg" : "audio/wav", upsert: true });
     if (up.error) throw up.error;
+    if (qc) await sb.storage.from("tts").remove([badPath]);
         return json({ url: pub, cached: false, qc });
   } catch (e) {
     return json({ error: String((e as Error).message ?? e).slice(0, 700) }, 500);

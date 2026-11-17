@@ -902,6 +902,7 @@ function sayText(q){
   t=t.replace(/(\d+):(\d\d) (am|pm)/g,(m,h,mm,ap)=>h+(+mm?':'+mm:" o'clock")+' '+(ap==='am'?'a.m.':'p.m.'));
   if(!ms)t=t.replace(/\b(\d)(st|nd|rd|th)\b/g,(m,d)=>['','first','second','third','fourth','fifth','sixth','seventh','eighth','ninth'][+d]);
   t=ms?msNums(t):enNums(t);
+  if(ms)t=t.replace(/\bper(dua|tiga|empat|lima|enam|tujuh|lapan|sembilan|sepuluh|seratus)\b/g,'per $1');
   return t.replace(/\s+/g,' ').replace(/\s+([?.,!])/g,'$1').replace(/\.{2,}/g,'.').trim().slice(0,320);
 }
 function msNums(t){
@@ -919,15 +920,23 @@ const TTSC=new Map();let curAudio=null,AUD=null,VSTAT='';
 const SILENT='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAACABAAZGF0YQAAAAA=';
 function unlockAudio(){if(AUD)return;try{AUD=new Audio();AUD.src=SILENT;const p=AUD.play();if(p&&p.catch)p.catch(()=>{})}catch(e){}}
 function setV(st){VSTAT=st;const b=document.querySelector('.say');if(b){b.classList.toggle('busy',st==='load');b.classList.toggle('off',st==='err'||st==='quota')}const n=document.getElementById('vnote');if(n){n.hidden=!(st==='err'||st==='quota');n.textContent=tr(st==='quota'?T('Suara cikgu sedang berehat sekejap. Cuba tekan 🔊 sebentar lagi.','The teacher’s voice is taking a short break. Try 🔊 again soon.'):T('Suara tidak dapat dimuatkan. Semak sambungan internet.','Voice can’t load. Check your internet connection.'))}}
+async function sha256(t){const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return[...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,'0')).join('')}
 function ttsUrl(text,v){const k=v+ST.lang+text;if(TTSC.has(k))return TTSC.get(k);
-  const p=fetch(CFG.url+'/functions/v1/tts',{method:'POST',headers:{'Content-Type':'application/json',apikey:CFG.key},body:JSON.stringify({text,lang:ST.lang,v})})
-    .then(async r=>{if(r.ok)return(await r.json()).url;const j=await r.json().catch(()=>({}));throw new Error(/429|quota|no_key/i.test(j.error||'')?'QUOTA':'NET')});TTSC.set(k,p);p.catch(()=>TTSC.delete(k));return p}
+  const p=(async()=>{
+    // 1) suara yang dah dijana & lulus semakan: terus dari storan (pantas, tanpa pelayan)
+    try{const L=ST.lang==='en'?'en':'ms',u=`${CFG.url}/storage/v1/object/public/tts/m2/${v}/${L}/${await sha256('v3|'+v+'|'+L+'|'+text)}.mp3`;
+      const h=await fetch(u,{method:'HEAD'});if(h.ok)return u}catch(e){}
+    // 2) belum ada: minta pelayan jana (dengan semakan automatik)
+    const r=await fetch(CFG.url+'/functions/v1/tts',{method:'POST',headers:{'Content-Type':'application/json',apikey:CFG.key},body:JSON.stringify({text,lang:ST.lang,v})});
+    if(r.ok)return(await r.json()).url;const j=await r.json().catch(()=>({}));
+    throw new Error(j.error==='qc_failed'?'NONE':/429|quota|no_key/i.test(j.error||'')?'QUOTA':'NET')})();
+  TTSC.set(k,p);p.catch(e=>{if(!e||e.message!=='NONE')TTSC.delete(k)});return p}
 function stopVoice(){if(curAudio){try{curAudio.pause()}catch(e){}curAudio=null}}
 function speakView(){const vi=V.view??V.i;if(vi===V.i&&V.picked==null)return speakQ(vi);const q=V.qs[vi];ttsUrl(sayText(q),q.vo||(vi%2?'m':'f')).then(u=>{stopVoice();curAudio=AUD||new Audio();curAudio.src=u;const p=curAudio.play();if(p&&p.catch)p.catch(()=>{})}).catch(()=>setV('err'))}
 function speakQ(i){if(!ST.sound||!CFG.url)return;const q=V.qs[i],v=q.vo||(i%2?'m':'f');
   setV('load');
-  ttsUrl(sayText(q),v).then(u=>{if(V.v!=='play'||V.i!==i||V.picked!=null)return;stopVoice();setV('');curAudio=AUD||new Audio();curAudio.src=u;const p=curAudio.play();if(p&&p.catch)p.catch(()=>setV('tap'))}).catch(e=>{if(V.v==='play'&&V.i===i)setV(e&&e.message==='QUOTA'?'quota':'err')});
-  prefetch(i+1,1)}
+  ttsUrl(sayText(q),v).then(u=>{if(V.v!=='play'||V.i!==i||V.picked!=null)return;stopVoice();setV('');curAudio=AUD||new Audio();curAudio.src=u;const p=curAudio.play();if(p&&p.catch)p.catch(()=>setV('tap'))}).catch(e=>{if(V.v==='play'&&V.i===i)setV(e&&e.message==='NONE'?'':e&&e.message==='QUOTA'?'quota':'err')});
+  prefetch(i+1,2)}
 function prefetch(from,k){if(!ST.sound||!CFG.url||!V.qs)return;for(let j=from;j<from+k&&j<V.qs.length;j++)ttsUrl(sayText(V.qs[j]),V.qs[j].vo||(j%2?'m':'f')).catch(()=>{})}
 
 /* ---------- online ---------- */
