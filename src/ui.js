@@ -2,7 +2,7 @@
 const CFG={url:'https://gqhvxplwxvbghkfzshdl.supabase.co',key:'sb_publishable_Qsrf4-BucGa5NYyfr8bm1Q_StVZEIm8'};
 const REVIEW=true; // true = semua tahap, kuiz & bab terbuka (mod semakan). Tukar ke false sebelum dilancar.
 const EN_ON=false; // English disembunyikan buat sementara (kod & kandungan EN dikekalkan). Tukar ke true untuk aktifkan semula.
-const APP_NAME='Jaguh Matematik'; // nama subjek; nama aplikasi utama akan ditambah kemudian
+const MAIN_NAME='Jaguh Sekolah',APP_NAME='Jaguh Matematik'; // aplikasi utama / subjek
 const KEY='jaguhmat_v1',STAGE_Q=8,QUIZ_Q=10;
 const TCOL={1:'#ff7a2f',2:'#0fa3a0',3:'#7c5cff'};
 const NEGERI=['Johor','Kedah','Kelantan','Melaka','Negeri Sembilan','Pahang','Perak','Perlis','Pulau Pinang','Sabah','Sarawak','Selangor','Terengganu','W.P. Kuala Lumpur','W.P. Labuan','W.P. Putrajaya'];
@@ -166,7 +166,7 @@ function stopTimer(){if(timer){clearInterval(timer);timer=null}}
 function render(){app.innerHTML=bar()+(VIEWS[V.v]||VIEWS.home)();const f=app.querySelector('[autofocus]');if(f&&V.v!=='play')f.focus();if(V.after){const a=V.after;V.after=null;a()}if(V.v==='play'){if(VSTAT==='err'||VSTAT==='quota')setV(VSTAT)}if(V.v==='play'&&V.picked==null&&V.view===V.i&&V.saidI!==V.i){if(V.i===0)prefetch(1,1);V.saidI=V.i;VSTAT='';speakQ(V.i)}}
 function bar(){
   const back=V.v==='home'?'':`<button class="ic" data-a="back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
-  return `<header class="top">${back}<button class="brand" data-a="home"><svg viewBox="0 0 40 40"><use href="#i-logo"/></svg><span>${APP_NAME}</span></button>
+  return `<header class="top">${back}<button class="brand" data-a="home" aria-label="${MAIN_NAME} · ${APP_NAME}"><svg viewBox="0 0 140 150" aria-hidden="true"><use href="#i-logo"/></svg><span class="bn"><b>Jaguh <i>Sekolah</i></b><small>Matematik</small></span></button>
   <div class="tools"><button class="ic" data-a="sound" aria-label="${tr(UI.sound)}"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/>${ST.sound?'<path d="M16 8a5 5 0 010 8M18.5 5.5a9 9 0 010 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>':'<path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'}</svg></button>
   ${EN_ON?`<div class="lang" role="group"><button data-a="lang" data-l="ms" class="${ST.lang==='ms'?'on':''}">BM</button><button data-a="lang" data-l="en" class="${ST.lang==='en'?'on':''}">EN</button></div>`:''}</div></header>`;
 }

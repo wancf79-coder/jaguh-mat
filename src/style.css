@@ -20,7 +20,12 @@ h1,h2,h3{font-family:"Baloo 2",Nunito,sans-serif;line-height:1.05;margin:0;text-
 /* top bar */
 .top{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:8px;padding:10px max(4vw,14px);background:var(--pri);color:#fff;box-shadow:0 2px 0 rgba(0,0,0,.12)}
 .brand{display:flex;align-items:center;gap:8px;font:800 22px/1 "Baloo 2",sans-serif;color:#fff;margin-right:auto;min-height:44px}
-.brand svg{width:34px;height:34px}
+.brand svg{width:36px;height:39px;flex:none}
+.brand .bn{display:flex;flex-direction:column;align-items:flex-start;line-height:.95}
+.brand .bn b{font:800 21px/1 "Baloo 2",sans-serif;color:#fff}.brand .bn i{font-style:normal;color:#ffc93c}
+.brand .bn small{font:800 11px/1.2 Nunito,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:#d6e3ff}
+.hbrand{display:inline-flex;align-items:center;gap:8px;background:rgba(255,255,255,.14);border-radius:999px;padding:5px 14px 5px 6px;margin-bottom:8px;font:800 15px/1 "Baloo 2",sans-serif}
+.hbrand svg{width:26px;height:28px}
 .ic{width:44px;height:44px;border-radius:12px;display:grid;place-items:center;color:#fff;background:rgba(255,255,255,.14)}
 .ic svg{width:24px;height:24px}
 .tools{display:flex;gap:8px;align-items:center}
