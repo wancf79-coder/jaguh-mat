@@ -21,13 +21,13 @@ const UI={
  year:T('Tahun','Year'),chap:T('Bab','Chapter'),chaps:T('bab','chapters'),stage:T('Tahap','Stage'),
  board:T('Papan Skor','Scoreboard'),acct:T('Akaun Online','Online Account'),
  quiz:T('Kuiz Bab','Chapter Quiz'),best:T('Terbaik','Best'),locked:T('Berkunci','Locked'),
- q:T('Soalan','Question'),of:T('daripada','of'),score:T('Mata','Points'),
+ q:T('Soalan','Question'),of:T('daripada','of'),score:T('Markah','Points'),
  right:T('Jawapan betul','Correct answer'),tapNext:T('Ketik untuk teruskan','Tap to continue'),
  again:T('Main lagi','Play again'),next:T('Tahap seterusnya','Next stage'),back:T('Kembali ke bab','Back to chapter'),
  fail:T('Hampir berjaya! Perlu 4 betul untuk buka tahap seterusnya.','Almost! You need 4 correct to unlock the next stage.'),
  quizOpen:T('Siapkan semua tahap untuk buka kuiz.','Finish all stages to unlock the quiz.'),
  openAll:T('Mod ulang kaji: buka semua bab','Revision mode: unlock all chapters'),
- me:T('Saya','Me'),online:T('Online','Online'),total:T('Jumlah mata','Total points'),stars:T('Bintang','Stars'),
+ me:T('Saya','Me'),online:T('Online','Online'),total:T('Jumlah markah','Total points'),stars:T('Bintang','Stars'),
  recent:T('Kuiz terkini','Recent quizzes'),none:T('Belum ada kuiz. Jom main!','No quizzes yet. Let\'s play!'),
  all:T('Semua','All'),week:T('Minggu ini','This week'),ever:T('Sepanjang masa','All time'),school:T('Sekolah saya','My school'),
  allBab:T('Semua bab','All chapters'),loading:T('Memuatkan…','Loading…'),empty:T('Belum ada pemain di sini. Jadilah yang pertama!','No players here yet. Be the first!'),
@@ -134,17 +134,16 @@ function unlockAudio(){if(AUD)return;try{AUD=new Audio();AUD.src=SILENT;const p=
 function setV(st){VSTAT=st;const b=document.querySelector('.say');if(b){b.classList.toggle('busy',st==='load');b.classList.toggle('off',st==='err'||st==='quota')}const n=document.getElementById('vnote');if(n){n.hidden=!(st==='err'||st==='quota');n.textContent=tr(st==='quota'?T('Suara cikgu sedang berehat sekejap. Cuba tekan 🔊 sebentar lagi.','The teacher’s voice is taking a short break. Try 🔊 again soon.'):T('Suara tidak dapat dimuatkan. Semak sambungan internet.','Voice can’t load. Check your internet connection.'))}}
 async function sha256(t){const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return[...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,'0')).join('')}
 function ttsUrl(text,v){const k=v+ST.lang+text;if(TTSC.has(k))return TTSC.get(k);
-  const p=(async()=>{
-    // 1) suara yang dah dijana & lulus semakan: terus dari storan (pantas, tanpa pelayan)
-    try{const L=ST.lang==='en'?'en':'ms',u=`${CFG.url}/storage/v1/object/public/tts/m2/${v}/${L}/${await sha256('v3|'+v+'|'+L+'|'+text)}.mp3`;
-      const h=await fetch(u,{method:'HEAD'});if(h.ok)return u}catch(e){}
-    // 2) belum ada: minta pelayan jana (dengan semakan automatik)
-    const r=await fetch(CFG.url+'/functions/v1/tts',{method:'POST',headers:{'Content-Type':'application/json',apikey:CFG.key},body:JSON.stringify({text,lang:ST.lang,v})});
-    if(r.ok)return(await r.json()).url;const j=await r.json().catch(()=>({}));
-    throw new Error(j.error==='qc_failed'?'NONE':/429|quota|no_key/i.test(j.error||'')?'QUOTA':'NET')})();
+  // Suara hanya dari storan (fail MP3 yang dah dijana & disemak). App TIDAK menjana suara semasa murid bermain,
+  // jadi berapa ramai pengguna pun, tiada had kadar Google & tiada menunggu.
+  const p=(async()=>{const L=ST.lang==='en'?'en':'ms',u=`${CFG.url}/storage/v1/object/public/tts/m2/${v}/${L}/${await sha256('v3|'+v+'|'+L+'|'+text)}.mp3`;
+    for(let t=0;t<3;t++){let r;try{r=await fetch(u,{cache:'force-cache'})}catch(e){await new Promise(z=>setTimeout(z,700*(t+1)));continue}
+      if(r.ok){const b=await r.blob();return URL.createObjectURL(b)}
+      if(r.status===400||r.status===404)throw new Error('NONE');await new Promise(z=>setTimeout(z,700*(t+1)))}
+    throw new Error('NET')})();
   TTSC.set(k,p);p.catch(e=>{if(!e||e.message!=='NONE')TTSC.delete(k)});return p}
 function stopVoice(){if(curAudio){try{curAudio.pause()}catch(e){}curAudio=null}}
-function speakView(){const vi=V.view??V.i;if(vi===V.i&&V.picked==null)return speakQ(vi);const q=V.qs[vi];ttsUrl(sayText(q),q.vo||(vi%2?'m':'f')).then(u=>{stopVoice();curAudio=AUD||new Audio();curAudio.src=u;const p=curAudio.play();if(p&&p.catch)p.catch(()=>{})}).catch(()=>setV('err'))}
+function speakView(){const vi=V.view??V.i;if(vi===V.i&&V.picked==null)return speakQ(vi);const q=V.qs[vi];ttsUrl(sayText(q),q.vo||(vi%2?'m':'f')).then(u=>{stopVoice();curAudio=AUD||new Audio();curAudio.src=u;const p=curAudio.play();if(p&&p.catch)p.catch(()=>{})}).catch(e=>setV(e&&e.message==='NONE'?'':'err'))}
 function speakQ(i){if(!ST.sound||!CFG.url)return;const q=V.qs[i],v=q.vo||(i%2?'m':'f');
   setV('load');
   ttsUrl(sayText(q),v).then(u=>{if(V.v!=='play'||V.i!==i||V.picked!=null)return;stopVoice();setV('');curAudio=AUD||new Audio();curAudio.src=u;const p=curAudio.play();if(p&&p.catch)p.catch(()=>setV('tap'))}).catch(e=>{if(V.v==='play'&&V.i===i)setV(e&&e.message==='NONE'?'':e&&e.message==='QUOTA'?'quota':'err')});
@@ -173,7 +172,7 @@ const app=document.getElementById('app');
 let V={v:'home'},timer=null,tok=0;
 function go(v,p){stopTimer();stopVoice();V=Object.assign({v},p||{});render();window.scrollTo(0,0)}
 function stopTimer(){if(timer){clearInterval(timer);timer=null}}
-function render(){app.innerHTML=bar()+(VIEWS[V.v]||VIEWS.home)();const f=app.querySelector('[autofocus]');if(f&&V.v!=='play')f.focus();if(V.after){const a=V.after;V.after=null;a()}if(V.v==='play'){if(VSTAT==='err'||VSTAT==='quota')setV(VSTAT)}if(V.v==='play'&&V.picked==null&&V.view===V.i&&V.saidI!==V.i){if(V.i===0)prefetch(1,1);V.saidI=V.i;VSTAT='';speakQ(V.i)}}
+function render(){app.innerHTML=bar()+(VIEWS[V.v]||VIEWS.home)();const f=app.querySelector('[autofocus]');if(f&&V.v!=='play')f.focus();if(V.after){const a=V.after;V.after=null;a()}if(V.v==='play'){if(VSTAT==='err'||VSTAT==='quota')setV(VSTAT)}if(V.v==='play'&&V.picked==null&&V.view===V.i&&V.saidI!==V.i){if(V.i===0)prefetch(1,V.qs.length);V.saidI=V.i;VSTAT='';speakQ(V.i)}}
 function bar(){
   const back=V.v==='home'?'':`<button class="ic" data-a="back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
   return `<header class="top">${back}<button class="brand" data-a="home" aria-label="${MAIN_NAME} · ${APP_NAME}"><svg viewBox="0 0 140 150" aria-hidden="true"><use href="#i-logo"/></svg><span class="bn"><b>Jaguh <i>Sekolah</i></b><small>Matematik</small></span></button>
@@ -212,10 +211,10 @@ play(){
     return `<button class="opt ${cl}" data-a="ans" data-k="${k}" ${done?'tabindex="-1" aria-disabled="true"':''}>${rich(o)}</button>`}).join('');
   const fb=done?`<div class="fb ${rec.right?'good':'bad'}" role="status"><div><b>${past?tr(rec.right?T('Kamu jawab betul','You got this right'):T('Kamu jawab salah','You got this wrong')):rec.picked===-1?tr(UI.timeUp):tr(rec.fb)}</b>${rec.right?(quiz&&!past?`<span>+${rec.last} ${tr(UI.score).toLowerCase()}</span>`:''):`<span>${tr(UI.right)}: <strong>${rich(q.opts[q.ans])}</strong></span>`}</div>
     <button class="nx" data-a="next" aria-label="${tr(T('Seterusnya','Next'))}"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>`:'';
-  const B=BAB[V.id],crumb=`<p class="pcrumb">${tr(UI.year)} ${B.tahun} · ${tr(UI.chap)} ${B.n}: ${rich(B.t)}<br><b>${quiz?tr(UI.quiz):`${tr(UI.stage)} ${V.s+1}: ${rich(B.st[V.s].t)}`}</b></p>`;
+  const B=BAB[V.id],crumb=`<p class="pcrumb">${tr(UI.year)} ${B.tahun} · ${tr(UI.chap)} ${B.n}: ${rich(B.t)}<br><b>${quiz?`${tr(UI.quiz)} ${B.n}`:`${tr(UI.stage)} ${V.s+1}: ${rich(B.st[V.s].t)}`}</b></p>`;
   const canBack=vi>0&&(!quiz||V.rec[V.i]),canFwd=done;
   const arrow=(a,ok,d,lbl)=>`<button class="arw" data-a="${ok?a:'none'}" ${ok?'':'disabled'} aria-label="${lbl}"><svg viewBox="0 0 24 24"><path d="${d}" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
-  const head=crumb+`<div class="ph">${arrow('prev',canBack,'M15 5l-7 7 7 7',tr(T('Soalan sebelum','Previous question')))}<span class="pq">${tr(UI.q)} ${vi+1}/${V.qs.length}${past?` <em>${tr(T('ulang lihat','review'))}</em>`:''}</span>${quiz?`<span class="pts">${fmtN(V.score)}</span>`:`<span class="pts">${V.ok} ✓</span>`}${arrow('next',canFwd,'M9 5l7 7-7 7',tr(T('Seterusnya','Next')))}</div>
+  const head=crumb+`<div class="ph">${arrow('prev',canBack,'M15 5l-7 7 7 7',tr(T('Soalan sebelum','Previous question')))}<span class="pq">${tr(UI.q)} ${vi+1}/${V.qs.length}${past?` <em>${tr(T('ulang lihat','review'))}</em>`:''}</span>${quiz?`<span class="pts">${fmtN(V.score)} <small>${tr(UI.score).toLowerCase()}</small></span>`:`<span class="pts">${V.ok} ✓</span>`}${arrow('next',canFwd,'M9 5l7 7-7 7',tr(T('Seterusnya','Next')))}</div>
   <div class="prog"><i style="width:${100*(V.i+(V.rec[V.i]?1:0))/V.qs.length}%"></i></div>${quiz&&!past&&!done?`<div class="timer"><i id="tb" style="width:${100*V.left/V.tl}%"></i></div>`:''}`;
   return `<main class="wrap play ${past?'past':''}" style="--c:${TCOL[BAB[V.id].tahun]}">${head}<section class="card"><div class="qrow"><p class="qt">${rich(q.q)}</p>${ST.sound?`<button class="say ${VSTAT==='load'&&!past?'busy':''}" data-a="say" aria-label="${tr(T('Dengar soalan','Listen'))}"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/><path d="M16 8a5 5 0 010 8M18.5 5.5a9 9 0 010 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>`:''}</div>${q.eq?`<p class="eq">${rich(q.eq)}</p>`:''}${q.vis?`<div class="vbox">${tr(q.vis)}</div>`:''}${ST.sound?`<p class="vnote" id="vnote" hidden></p>`:''}</section>
   <div class="opts ${q.opts.some(o=>!/^<svg/.test(tr(o))&&tr(o).length>14)?'wide':''} ${q.opts.some(o=>/^<svg/.test(tr(o)))?'pics':''}">${opts}</div>${fb}</main>`;

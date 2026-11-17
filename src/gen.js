@@ -235,7 +235,7 @@ word(p){const n=ri(p.min||0,p.max),cand=[n+1,n-1,n+10,n-10,n+100,n-100,n+1000].f
   if(Math.random()<.5)return mc({q:T('Pilih perkataan bagi nombor ini.','Choose the number name.'),eq:fmtN(n)},NW(n),cand.map(NW));
   return mc({q:T(`Pilih angka bagi "${wMs(n)}".`,`Choose the numeral for "${wEn(n)}".`)},n,cand)},
 rods(){const t=ri(1,9),o=ri(0,9),n=t*10+o;
-  return mc({q:T('Berapakah nombor yang ditunjukkan?','What number is shown?'),vis:rods(t,o)},n,[o*10+t,n+1,n-1,n+10,n-10,t+o].filter(x=>x!==n&&x>0))},
+  return mc({q:T('Satu rod ada 10 blok. Berapakah jumlah semua blok?','One rod has 10 blocks. How many blocks are there altogether?'),vis:rods(t,o)},n,[o*10+t,n+1,n-1,n+10,n-10,t+o].filter(x=>x!==n&&x>0))},
 place(p){let n,ds;for(let k=0;k<50;k++){n=ri(p.min,p.max);ds=String(n).split('');if(new Set(ds).size===ds.length&&!ds.includes('0'))break}
   const L=ds.length,i=ri(0,L-1),d=+ds[L-1-i];
   if(Math.random()<.5){const ans=d*10**i;
@@ -256,7 +256,7 @@ pattern(p){const st=pick(p.steps),down=p.down&&Math.random()<.4,len=5,s0=ri(p.mi
   let seq=[...Array(len)].map((_,i)=>s0+i*st);if(down)seq.reverse();const h=ri(1,len-1),ans=seq[h];
   return mc({q:T('Apakah nombor yang hilang?','What is the missing number?'),eq:seq.map((x,i)=>i===h?'?':fmtN(x)).join(', ')},ans,near(ans,[st,-st,1,-1,2*st,10,-10],0))},
 round(p){const to=pick(p.to);let n;do{n=ri(p.min||1,p.max)}while(n%to===0);const ans=Math.round(n/to)*to,pl={10:1,100:2,1000:3}[to];
-  return mc({q:T(`Bundarkan ${fmtN(n)} kepada ${PLACE[pl].ms} yang terdekat.`,`Round ${fmtN(n)} to the nearest ${['','ten','hundred','thousand'][pl]}.`)},ans,[Math.floor(n/to)*to,Math.ceil(n/to)*to,ans+to,ans-to,Math.round(n/(to/10))*(to/10)].filter(x=>x>=0&&x!==ans))},
+  return mc({q:T(`Bundarkan ${fmtN(n)} kepada ${PLACE[pl].ms} yang terdekat.`,`Round ${fmtN(n)} to the nearest ${['','ten','hundred','thousand'][pl]}.`)},ans,[Math.floor(n/to)*to,Math.ceil(n/to)*to,ans+to,ans-to,Math.round(n/(to/10))*(to/10)].filter(x=>x>=(p.pos?1:0)&&x!==ans))},
 /* --- operasi --- */
 add(p){let a,b;for(let k=0;k<300;k++){
     if(p.basic){a=ri(1,9);b=ri(1,9)}else{a=ri(p.min||10,p.max-1);b=ri(p.bmin||1,p.max-a)}
@@ -419,10 +419,10 @@ ratio(){const r=Math.random(),th=pick([T('krayon','crayons'),T('pensel','pencils
 };
 /* ===== Tahun 1 · Bab 1 (ikut Buku Teks KPM: Nombor hingga 100) ===== */
 const BTN=['#ef5b8c','#3b82f6','#22b573','#f2b705','#a66cff','#ff8a3d'];
-function boxObjs(n,kind,label,w){ // kumpulan objek dalam kotak berlabel
-  const per=5,s=34,rows=Math.max(1,Math.ceil(n/per)),bw=w||per*s+20,bh=rows*s+(label?44:24);let g=`<rect x="2" y="2" width="${bw-4}" height="${bh-4}" rx="14" fill="#ffffff" stroke="#c9d6ee" stroke-width="3"/>`;
+function boxObjs(n,kind,label,w,per,s){ // kumpulan objek dalam kotak berlabel
+  per=per||5;s=s||34;const rows=Math.max(1,Math.ceil(n/per)),bw=w||per*s+20,bh=rows*s+(label?44:24),is=s-4,x0=(bw-per*s)/2+2;let g=`<rect x="2" y="2" width="${bw-4}" height="${bh-4}" rx="14" fill="#ffffff" stroke="#c9d6ee" stroke-width="3"/>`;
   if(label)g+=`<text x="${bw/2}" y="26" text-anchor="middle" font-size="18" font-weight="800" fill="#123a8f">${label}</text>`;
-  for(let i=0;i<n;i++){const r=Math.floor(i/per),c=i%per;g+=`<use href="#i-${kind}" x="${10+c*s}" y="${(label?34:12)+r*s}" width="30" height="30"/>`}
+  for(let i=0;i<n;i++){const r=Math.floor(i/per),c=i%per;g+=`<use href="#i-${kind}" x="${x0+c*s}" y="${(label?34:12)+r*s}" width="${is}" height="${is}"/>`}
   return{g,w:bw,h:bh};
 }
 function bondSvg(whole,a,b,miss){ // rajah kombinasi nombor
@@ -441,23 +441,23 @@ function jarSvg(n,seed){ // balang berisi butang (rawak tapi tidak bertindih)
 Object.assign(G,{
 banyak(p){const A=nextItem(),B=Math.random()<.5?A:nextItem();const same=Math.random()<.2;
   let a=ri(1,p.max||10),b;do{b=ri(1,p.max||10)}while(!same&&b===a);if(same)b=a;
-  const ga=boxObjs(a,A.id,'Kumpulan A',190),gb=boxObjs(b,B.id,'Kumpulan B',190),h=Math.max(ga.h,gb.h);
-  const vis=svg(400,h,`<g>${ga.g}</g><g transform="translate(210,0)">${gb.g}</g>`,460);
+  const ga=boxObjs(a,A.id,'Kumpulan A',204,4,48),gb=boxObjs(b,B.id,'Kumpulan B',204,4,48),h=Math.max(ga.h,gb.h);
+  const vis=svg(420,h,`<g>${ga.g}</g><g transform="translate(216,0)">${gb.g}</g>`,520);
   const o=[T('Kumpulan A','Group A'),T('Kumpulan B','Group B'),T('Sama banyak','The same')];
   const t=pick(['lebih','kurang']);const ans=a===b?o[2]:(t==='lebih'?(a>b?o[0]:o[1]):(a<b?o[0]:o[1]));
   return mc({q:t==='lebih'?T('Kumpulan manakah lebih banyak?','Which group has more?'):T('Kumpulan manakah lebih sedikit?','Which group has fewer?'),vis,uk:a+'-'+b+A.id+B.id},ans,o)},
-countBox(p){const k=nextItem();const n=ri(p.min||1,p.max);const b=boxObjs(n,k.id,'',n>10?190:190);
-  return mc({q:T(`Berapakah bilangan ${k.t.ms} di dalam kotak?`,`How many ${k.t.en} are in the box?`),vis:svg(b.w,b.h,b.g,260)},n,near(n,[-2,-1,1,2,3,-3,10,-10],1,p.max))},
+countBox(p){const k=nextItem();const n=ri(p.min||1,p.max);const b=boxObjs(n,k.id,'',5*46+20,5,46);
+  return mc({q:T(`Berapakah bilangan ${k.t.ms} di dalam kotak?`,`How many ${k.t.en} are in the box?`),vis:svg(b.w,b.h,b.g,340)},n,near(n,[-2,-1,1,2,3,-3,10,-10],1,p.max))},
 sifar(p){const k=nextItem(),L=['A','B','C'],z=ri(0,2),ns=L.map((_,i)=>i===z?0:ri(1,6));
-  const bs=ns.map((n,i)=>boxObjs(n,k.id,'Kotak '+L[i],190)),h=Math.max(...bs.map(b=>b.h));
-  const vis=svg(610,h,bs.map((b,i)=>`<g transform="translate(${i*210},0)">${b.g}</g>`).join(''),560);
+  const bs=ns.map((n,i)=>boxObjs(n,k.id,'Kotak '+L[i],176,3,56)),h=Math.max(...bs.map(b=>b.h));
+  const vis=svg(544,h,bs.map((b,i)=>`<g transform="translate(${i*184},0)">${b.g}</g>`).join(''),600);
   const o=L.map(x=>T('Kotak '+x,'Box '+x));
   return mc({q:T(`Kotak manakah ada sifar ${k.t.ms}?`,`Which box has zero ${k.t.en}?`),vis,uk:ns.join('')+k.id},o[z],o)},
 bond(p){const w=ri(p.min||3,p.max||10),a=ri(1,w-1),b=w-a,miss=pick(['a','b','w','a','b']);const ans=miss==='w'?w:miss==='a'?a:b;
   const eq=miss==='w'?`${a} dan ${b} ialah ?`:miss==='a'?`? dan ${b} ialah ${w}`:`${a} dan ? ialah ${w}`;
   return mc({q:T('Lengkapkan kombinasi nombor ini.','Complete this number bond.'),vis:bondSvg(w,a,b,miss),eq},ans,near(ans,[-2,-1,1,2,3,-3],1,10))},
 abacus(p){const t=ri(p.minT||1,9),o=ri(0,9),n=t*10+o;
-  return mc({q:T('Berapakah nombor yang ditunjukkan oleh abakus?','What number does the abacus show?'),vis:abacusSvg(t,o)},n,[o*10+t,n+1,n-1,n+10,n-10,t+o].filter(x=>x!==n&&x>0&&x<=100))},
+  return mc({q:T('Berapakah nombor pada abakus ini?','What number is on this abacus?'),vis:abacusSvg(t,o)},n,[o*10+t,n+1,n-1,n+10,n-10,t+o].filter(x=>x!==n&&x>0&&x<=100))},
 tensOnes(p){const t=ri(1,9),o=ri(1,9),n=t*10+o,f=(a,b)=>T(`${a} puluh dan ${b} sa`,`${a} tens and ${b} ones`);
   return mc({q:T(`${n} ialah berapa puluh dan berapa sa?`,`${n} is how many tens and how many ones?`)},f(t,o),[f(o,t),f(t,o+1>9?o-1:o+1),f(t+1>9?t-1:t+1,o),f(t,t)].filter(x=>x.ms!==f(t,o).ms))},
 placeT1(p){let n,ds;for(let k=0;k<50;k++){n=ri(11,99);ds=String(n).split('');if(ds[0]!==ds[1]&&ds[1]!=='0')break}
@@ -505,7 +505,7 @@ const CH={
    S('Kombinasi nombor','Number bonds',['bond',{min:3,max:10}]),
    S('Nombor hingga 100 & nilai tempat','Numbers to 100 & place value',['rods',{}],['abacus',{}],['tensOnes',{}],['placeT1',{}]),
    S('Lebih, kurang & susunan','More, less & order',['seqRel',{max:100}],['orderKPM',{max:100}],['cmpStory',{max:99}]),
-   S('Pola, anggaran & bundar','Patterns, estimation & rounding',['patternKPM',{steps:[1,2,4,5,10],max:100}],['estimate',{}],['round',{max:99,to:[10]}])]},
+   S('Pola, anggaran & bundar','Patterns, estimation & rounding',['patternKPM',{steps:[1,2,4,5,10],max:100}],['estimate',{}],['round',{min:5,max:99,to:[10],pos:1}])]},
  {t:T('Tambah dan Tolak','Addition and Subtraction'),st:[
    S('Fakta asas tambah','Basic addition facts',['add',{basic:1,max:18}]),
    S('Tambah hingga 100','Add within 100',['add',{max:100,min:10,carry:false}],['add',{max:100,min:10,carry:true}]),

@@ -88,7 +88,7 @@ input,select{min-height:48px;border:2px solid var(--line);border-radius:12px;pad
 
 /* main */
 .play .ph{display:flex;justify-content:space-between;font-weight:800;color:var(--mut);margin-bottom:6px}
-.pts{color:var(--c)}
+.pts{color:var(--c);white-space:nowrap}.pts small{font-size:.62em;font-weight:700;opacity:.85}
 .prog,.timer{height:10px;background:light-dark(#d9e6f8,#25305c);border-radius:9px;overflow:hidden;margin-bottom:8px}
 .timer{height:8px}.timer i{background:var(--sun);transition:width .1s linear}
 .card{background:var(--card);border-radius:22px;padding:18px;box-shadow:0 5px 0 var(--line);margin:8px 0 14px}
