@@ -201,6 +201,8 @@ h3{font-size:22px;margin:18px 0 8px;color:var(--c)}
 .opt[aria-disabled=true]{cursor:default}
 .opts.pics .opt{padding:8px;min-height:110px;display:grid;place-items:center}.opts.pics .opt svg{width:100%;max-width:150px;height:auto}
 
+.vis .tap{cursor:pointer;transition:transform .12s}.vis .tap:not(.done):active>rect:first-child{fill:#fff3e8;stroke:#ff8a3d}.vis .tap.done{cursor:default}.vis .tap.good>rect:first-child{fill:#eafaf1;stroke:#18a058;stroke-width:5}.vis .tap.bad>rect:first-child{fill:#fff0f0;stroke:#e5484d;stroke-width:5}
+
 </style>
 </head>
 <body>
@@ -709,7 +711,7 @@ Object.assign(G,{
 banyak(p){const A=nextItem(),B=Math.random()<.5?A:nextItem();const same=Math.random()<.2;
   let a=ri(1,p.max||10),b;do{b=ri(1,p.max||10)}while(!same&&b===a);if(same)b=a;
   const mr=Math.ceil(Math.max(a,b)/4),ga=boxObjs(a,A.id,'Kumpulan A',204,4,48,mr),gb=boxObjs(b,B.id,'Kumpulan B',204,4,48,mr),h=Math.max(ga.h,gb.h);
-  const vis=svg(420,h,`<g>${ga.g}</g><g transform="translate(216,0)">${gb.g}</g>`,520);
+  const vis=svg(420,h,`<g class="tap" data-a="box" data-o="Kumpulan A" role="button" aria-label="Kumpulan A">${ga.g}</g><g class="tap" data-a="box" data-o="Kumpulan B" role="button" aria-label="Kumpulan B" transform="translate(216,0)">${gb.g}</g>`,520);
   const o=[T('Kumpulan A','Group A'),T('Kumpulan B','Group B'),T('Sama banyak','The same')];
   const t=pick(['lebih','kurang']);const ans=a===b?o[2]:(t==='lebih'?(a>b?o[0]:o[1]):(a<b?o[0]:o[1]));
   return mc({q:t==='lebih'?T('Kumpulan manakah lebih banyak?','Which group has more?'):T('Kumpulan manakah lebih sedikit?','Which group has fewer?'),vis,uk:a+'-'+b+A.id+B.id},ans,o)},
@@ -717,7 +719,7 @@ countBox(p){const k=nextItem();const n=ri(p.min||1,p.max);const b=boxObjs(n,k.id
   return mc({q:T(`Berapakah bilangan ${k.t.ms} di dalam kotak?`,`How many ${k.t.en} are in the box?`),vis:svg(b.w,b.h,b.g,340)},n,near(n,[-2,-1,1,2,3,-3,10,-10],1,p.max))},
 sifar(p){const k=nextItem(),L=['A','B','C'],z=ri(0,2),ns=L.map((_,i)=>i===z?0:ri(1,6));
   const mr=Math.ceil(Math.max(...ns)/3),bs=ns.map((n,i)=>boxObjs(n,k.id,'Kotak '+L[i],176,3,56,mr)),h=Math.max(...bs.map(b=>b.h));
-  const vis=svg(544,h,bs.map((b,i)=>`<g transform="translate(${i*184},0)">${b.g}</g>`).join(''),600);
+  const vis=svg(544,h,bs.map((b,i)=>`<g class="tap" data-a="box" data-o="Kotak ${L[i]}" role="button" aria-label="Kotak ${L[i]}" transform="translate(${i*184},0)">${b.g}</g>`).join(''),600);
   const o=L.map(x=>T('Kotak '+x,'Box '+x));
   return mc({q:T(`Kotak manakah ada sifar ${k.t.ms}?`,`Which box has zero ${k.t.en}?`),vis,uk:ns.join('')+k.id},o[z],o)},
 bond(p){const w=ri(p.min||3,p.max||10),a=ri(1,w-1),b=w-a,miss=pick(['a','b','w','a','b']);const ans=miss==='w'?w:miss==='a'?a:b;
@@ -1069,7 +1071,7 @@ const app=document.getElementById('app');
 let V={v:'home'},timer=null,tok=0;
 function go(v,p){stopTimer();stopVoice();V=Object.assign({v},p||{});render();window.scrollTo(0,0)}
 function stopTimer(){if(timer){clearInterval(timer);timer=null}}
-function render(){app.innerHTML=bar()+(VIEWS[V.v]||VIEWS.home)();const f=app.querySelector('[autofocus]');if(f&&V.v!=='play')f.focus();if(V.after){const a=V.after;V.after=null;a()}if(V.v==='play'){if(VSTAT==='err'||VSTAT==='quota')setV(VSTAT)}if(V.v==='play'&&V.picked==null&&V.view===V.i&&V.saidI!==V.i){if(V.i===0)prefetch(1,V.qs.length);V.saidI=V.i;VSTAT='';speakQ(V.i)}}
+function render(){app.innerHTML=bar()+(VIEWS[V.v]||VIEWS.home)();const f=app.querySelector('[autofocus]');if(f&&V.v!=='play')f.focus();if(V.after){const a=V.after;V.after=null;a()}if(V.v==='play'){if(VSTAT==='err'||VSTAT==='quota')setV(VSTAT);const vi=V.view??V.i,q=V.qs[vi],rec=V.rec[vi];app.querySelectorAll('[data-a="box"]').forEach(g=>{if(!rec)return;g.classList.add('done');const k=q.opts.findIndex(o=>(o&&o.ms!=null?o.ms:o)===g.dataset.o);if(k===q.ans)g.classList.add('good');else if(k===rec.picked)g.classList.add('bad')})}if(V.v==='play'&&V.picked==null&&V.view===V.i&&V.saidI!==V.i){if(V.i===0)prefetch(1,V.qs.length);V.saidI=V.i;VSTAT='';speakQ(V.i)}}
 function bar(){
   const back=V.v==='home'?'':`<button class="ic" data-a="back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
   return `<header class="top">${back}<button class="brand" data-a="home" aria-label="${MAIN_NAME} · ${APP_NAME}"><svg viewBox="0 0 140 150" aria-hidden="true"><use href="#i-logo"/></svg><span class="bn"><b>Jaguh <i>Sekolah</i></b><small>Matematik</small></span></button>
@@ -1229,7 +1231,7 @@ const ACT={
  rename:()=>{ST.name='';save();render()},
  year:d=>go('year',{t:+d.t}),bab:d=>go('bab',{id:d.id}),
  play:d=>startStage(V.id||V.r.id,+d.s),quiz:()=>startQuiz(V.id||V.r.id),
- ans:d=>answer(+d.k),say:()=>{if(V.v==='play')speakView()},next:()=>next(),prev:()=>prev(),
+ ans:d=>answer(+d.k),box:d=>{if(V.v!=='play')return;const q=V.qs[V.i],k=q?q.opts.findIndex(o=>(o&&o.ms!=null?o.ms:o)===d.o):-1;if(k>=0)answer(k)},say:()=>{if(V.v==='play')speakView()},next:()=>next(),prev:()=>prev(),
  board:()=>go('board',{tab:'me'}),tab:d=>{V.tab=d.t;V.lb=null;render()},
  per:d=>{V.f.period=d.p;V.lb=null;render()},
  acct:()=>go('acct',{mode:'reg'}),am:d=>{V.mode=d.m;V.err='';render()},

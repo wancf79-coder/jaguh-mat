@@ -442,7 +442,7 @@ Object.assign(G,{
 banyak(p){const A=nextItem(),B=Math.random()<.5?A:nextItem();const same=Math.random()<.2;
   let a=ri(1,p.max||10),b;do{b=ri(1,p.max||10)}while(!same&&b===a);if(same)b=a;
   const mr=Math.ceil(Math.max(a,b)/4),ga=boxObjs(a,A.id,'Kumpulan A',204,4,48,mr),gb=boxObjs(b,B.id,'Kumpulan B',204,4,48,mr),h=Math.max(ga.h,gb.h);
-  const vis=svg(420,h,`<g>${ga.g}</g><g transform="translate(216,0)">${gb.g}</g>`,520);
+  const vis=svg(420,h,`<g class="tap" data-a="box" data-o="Kumpulan A" role="button" aria-label="Kumpulan A">${ga.g}</g><g class="tap" data-a="box" data-o="Kumpulan B" role="button" aria-label="Kumpulan B" transform="translate(216,0)">${gb.g}</g>`,520);
   const o=[T('Kumpulan A','Group A'),T('Kumpulan B','Group B'),T('Sama banyak','The same')];
   const t=pick(['lebih','kurang']);const ans=a===b?o[2]:(t==='lebih'?(a>b?o[0]:o[1]):(a<b?o[0]:o[1]));
   return mc({q:t==='lebih'?T('Kumpulan manakah lebih banyak?','Which group has more?'):T('Kumpulan manakah lebih sedikit?','Which group has fewer?'),vis,uk:a+'-'+b+A.id+B.id},ans,o)},
@@ -450,7 +450,7 @@ countBox(p){const k=nextItem();const n=ri(p.min||1,p.max);const b=boxObjs(n,k.id
   return mc({q:T(`Berapakah bilangan ${k.t.ms} di dalam kotak?`,`How many ${k.t.en} are in the box?`),vis:svg(b.w,b.h,b.g,340)},n,near(n,[-2,-1,1,2,3,-3,10,-10],1,p.max))},
 sifar(p){const k=nextItem(),L=['A','B','C'],z=ri(0,2),ns=L.map((_,i)=>i===z?0:ri(1,6));
   const mr=Math.ceil(Math.max(...ns)/3),bs=ns.map((n,i)=>boxObjs(n,k.id,'Kotak '+L[i],176,3,56,mr)),h=Math.max(...bs.map(b=>b.h));
-  const vis=svg(544,h,bs.map((b,i)=>`<g transform="translate(${i*184},0)">${b.g}</g>`).join(''),600);
+  const vis=svg(544,h,bs.map((b,i)=>`<g class="tap" data-a="box" data-o="Kotak ${L[i]}" role="button" aria-label="Kotak ${L[i]}" transform="translate(${i*184},0)">${b.g}</g>`).join(''),600);
   const o=L.map(x=>T('Kotak '+x,'Box '+x));
   return mc({q:T(`Kotak manakah ada sifar ${k.t.ms}?`,`Which box has zero ${k.t.en}?`),vis,uk:ns.join('')+k.id},o[z],o)},
 bond(p){const w=ri(p.min||3,p.max||10),a=ri(1,w-1),b=w-a,miss=pick(['a','b','w','a','b']);const ans=miss==='w'?w:miss==='a'?a:b;

@@ -172,7 +172,7 @@ const app=document.getElementById('app');
 let V={v:'home'},timer=null,tok=0;
 function go(v,p){stopTimer();stopVoice();V=Object.assign({v},p||{});render();window.scrollTo(0,0)}
 function stopTimer(){if(timer){clearInterval(timer);timer=null}}
-function render(){app.innerHTML=bar()+(VIEWS[V.v]||VIEWS.home)();const f=app.querySelector('[autofocus]');if(f&&V.v!=='play')f.focus();if(V.after){const a=V.after;V.after=null;a()}if(V.v==='play'){if(VSTAT==='err'||VSTAT==='quota')setV(VSTAT)}if(V.v==='play'&&V.picked==null&&V.view===V.i&&V.saidI!==V.i){if(V.i===0)prefetch(1,V.qs.length);V.saidI=V.i;VSTAT='';speakQ(V.i)}}
+function render(){app.innerHTML=bar()+(VIEWS[V.v]||VIEWS.home)();const f=app.querySelector('[autofocus]');if(f&&V.v!=='play')f.focus();if(V.after){const a=V.after;V.after=null;a()}if(V.v==='play'){if(VSTAT==='err'||VSTAT==='quota')setV(VSTAT);const vi=V.view??V.i,q=V.qs[vi],rec=V.rec[vi];app.querySelectorAll('[data-a="box"]').forEach(g=>{if(!rec)return;g.classList.add('done');const k=q.opts.findIndex(o=>(o&&o.ms!=null?o.ms:o)===g.dataset.o);if(k===q.ans)g.classList.add('good');else if(k===rec.picked)g.classList.add('bad')})}if(V.v==='play'&&V.picked==null&&V.view===V.i&&V.saidI!==V.i){if(V.i===0)prefetch(1,V.qs.length);V.saidI=V.i;VSTAT='';speakQ(V.i)}}
 function bar(){
   const back=V.v==='home'?'':`<button class="ic" data-a="back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
   return `<header class="top">${back}<button class="brand" data-a="home" aria-label="${MAIN_NAME} · ${APP_NAME}"><svg viewBox="0 0 140 150" aria-hidden="true"><use href="#i-logo"/></svg><span class="bn"><b>Jaguh <i>Sekolah</i></b><small>Matematik</small></span></button>
@@ -332,7 +332,7 @@ const ACT={
  rename:()=>{ST.name='';save();render()},
  year:d=>go('year',{t:+d.t}),bab:d=>go('bab',{id:d.id}),
  play:d=>startStage(V.id||V.r.id,+d.s),quiz:()=>startQuiz(V.id||V.r.id),
- ans:d=>answer(+d.k),say:()=>{if(V.v==='play')speakView()},next:()=>next(),prev:()=>prev(),
+ ans:d=>answer(+d.k),box:d=>{if(V.v!=='play')return;const q=V.qs[V.i],k=q?q.opts.findIndex(o=>(o&&o.ms!=null?o.ms:o)===d.o):-1;if(k>=0)answer(k)},say:()=>{if(V.v==='play')speakView()},next:()=>next(),prev:()=>prev(),
  board:()=>go('board',{tab:'me'}),tab:d=>{V.tab=d.t;V.lb=null;render()},
  per:d=>{V.f.period=d.p;V.lb=null;render()},
  acct:()=>go('acct',{mode:'reg'}),am:d=>{V.mode=d.m;V.err='';render()},
