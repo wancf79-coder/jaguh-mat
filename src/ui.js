@@ -1,13 +1,15 @@
-/* ===== Jaguh Mat — antara muka ===== */
+/* ===== Jaguh Matematik — antara muka ===== */
 const CFG={url:'https://gqhvxplwxvbghkfzshdl.supabase.co',key:'sb_publishable_Qsrf4-BucGa5NYyfr8bm1Q_StVZEIm8'};
 const REVIEW=true; // true = semua tahap, kuiz & bab terbuka (mod semakan). Tukar ke false sebelum dilancar.
+const EN_ON=false; // English disembunyikan buat sementara (kod & kandungan EN dikekalkan). Tukar ke true untuk aktifkan semula.
+const APP_NAME='Jaguh Matematik'; // nama subjek; nama aplikasi utama akan ditambah kemudian
 const KEY='jaguhmat_v1',STAGE_Q=8,QUIZ_Q=10;
 const TCOL={1:'#ff7a2f',2:'#0fa3a0',3:'#7c5cff'};
 const NEGERI=['Johor','Kedah','Kelantan','Melaka','Negeri Sembilan','Pahang','Perak','Perlis','Pulau Pinang','Sabah','Sarawak','Selangor','Terengganu','W.P. Kuala Lumpur','W.P. Labuan','W.P. Putrajaya'];
 
 let ST=load();
 function def(){return{lang:'ms',sound:true,name:'',prog:{},hist:[],online:null,pending:[],openAll:false}}
-function load(){try{return Object.assign(def(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){return def()}}
+function load(){let s;try{s=Object.assign(def(),JSON.parse(localStorage.getItem(KEY)||'{}'))}catch(e){s=def()}if(!EN_ON)s.lang='ms';return s}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(ST))}catch(e){}}
 const tr=o=>o==null?'':typeof o==='object'?(o[ST.lang]??o.ms):String(o);
 const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -164,9 +166,9 @@ function stopTimer(){if(timer){clearInterval(timer);timer=null}}
 function render(){app.innerHTML=bar()+(VIEWS[V.v]||VIEWS.home)();const f=app.querySelector('[autofocus]');if(f&&V.v!=='play')f.focus();if(V.after){const a=V.after;V.after=null;a()}if(V.v==='play'){if(VSTAT==='err'||VSTAT==='quota')setV(VSTAT)}if(V.v==='play'&&V.picked==null&&V.view===V.i&&V.saidI!==V.i){if(V.i===0)prefetch(1,1);V.saidI=V.i;VSTAT='';speakQ(V.i)}}
 function bar(){
   const back=V.v==='home'?'':`<button class="ic" data-a="back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></button>`;
-  return `<header class="top">${back}<button class="brand" data-a="home"><svg viewBox="0 0 40 40"><use href="#i-logo"/></svg><span>Jaguh Mat</span></button>
+  return `<header class="top">${back}<button class="brand" data-a="home"><svg viewBox="0 0 40 40"><use href="#i-logo"/></svg><span>${APP_NAME}</span></button>
   <div class="tools"><button class="ic" data-a="sound" aria-label="${tr(UI.sound)}"><svg viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z" fill="currentColor"/>${ST.sound?'<path d="M16 8a5 5 0 010 8M18.5 5.5a9 9 0 010 13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>':'<path d="M16 9l5 6M21 9l-5 6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'}</svg></button>
-  <div class="lang" role="group"><button data-a="lang" data-l="ms" class="${ST.lang==='ms'?'on':''}">BM</button><button data-a="lang" data-l="en" class="${ST.lang==='en'?'on':''}">EN</button></div></div></header>`;
+  ${EN_ON?`<div class="lang" role="group"><button data-a="lang" data-l="ms" class="${ST.lang==='ms'?'on':''}">BM</button><button data-a="lang" data-l="en" class="${ST.lang==='en'?'on':''}">EN</button></div>`:''}</div></header>`;
 }
 function backOf(){const v=V.v;if(v==='year'||v==='board'||v==='acct')return['home'];if(v==='bab')return['year',{t:BAB[V.id].tahun}];if(v==='play'||v==='result')return['bab',{id:V.id}];return['home']}
 
@@ -177,7 +179,7 @@ home(){
     return `<button class="yr" style="--c:${TCOL[t]}" data-a="year" data-t="${t}"><span class="yn">${t}</span><span class="yt"><b>${tr(UI.year)} ${t}</b><small>${CH[t].length} ${tr(UI.chaps)}</small></span><span class="meter"><i style="width:${pct}%"></i></span><span class="pc">${pct}%</span></button>`}).join('');
   const who=ST.name?`<div class="hello"><div><b>${tr(UI.hi)}, ${esc(ST.name)}!</b><small>${fmtN(totalPts())} ${tr(UI.score).toLowerCase()} · ${totalStars()} ★</small></div><button class="link" data-a="rename">✎</button></div>`
     :`<form class="namef" data-f="name"><label for="nm">${tr(UI.name)}</label><div class="row"><input id="nm" maxlength="20" autocomplete="off" autofocus><button class="btn">${tr(UI.go)}</button></div></form>`;
-  return `<main class="wrap"><section class="hero"><div class="ht"><h1>Jaguh Mat</h1><p>${tr(UI.tag)}</p></div><svg class="hpic" viewBox="0 0 260 170"><use href="#i-hero"/></svg></section>${who}
+  return `<main class="wrap"><section class="hero"><div class="ht"><h1>${APP_NAME}</h1><p>${tr(UI.tag)}</p></div><svg class="hpic" viewBox="0 0 260 170"><use href="#i-hero"/></svg></section>${who}
   <section class="yrs">${yrs}</section><div class="duo"><button class="btn big alt" data-a="board">${tr(UI.board)}</button><button class="btn big ghost" data-a="acct">${ST.online?esc(ST.online.nickname):tr(UI.acct)}</button></div></main>`;
 },
 year(){
@@ -313,7 +315,7 @@ async function loadLB(){
 /* ---------- acara ---------- */
 const ACT={
  home:()=>go('home'),back:()=>{const [v,p]=backOf();go(v,p)},none:()=>{},
- lang:d=>{ST.lang=d.l;save();stopVoice();V.saidI=null;document.documentElement.lang=d.l==='ms'?'ms':'en';const keep=V.after;render()},
+ lang:d=>{if(!EN_ON)return;ST.lang=d.l;save();stopVoice();V.saidI=null;document.documentElement.lang=d.l==='ms'?'ms':'en';const keep=V.after;render()},
  sound:()=>{ST.sound=!ST.sound;save();if(!ST.sound)stopVoice();V.saidI=V.i;render()},
  rename:()=>{ST.name='';save();render()},
  year:d=>go('year',{t:+d.t}),bab:d=>go('bab',{id:d.id}),
