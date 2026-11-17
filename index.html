@@ -644,6 +644,69 @@ ratio(){const r=Math.random(),th=pick([T('krayon','crayons'),T('pensel','pencils
   if(r<.75){const per=ri(2,9),n=ri(2,9),ans=per*n;return mc({q:T(`Sebiji kek memerlukan ${per} biji telur. Berapakah telur yang diperlukan untuk ${n} biji kek?`,`One cake needs ${per} eggs. How many eggs are needed for ${n} cakes?`)},ans,[ans+per,ans-per,per+n,ans+1])}
   const per=pick([10,100]),n=ri(2,9),tot=per*n;return mc({q:T(`${fmtN(tot)} ${th.ms} dimasukkan ke dalam kotak. Setiap kotak berisi ${per}. Berapakah kotak yang diperlukan?`,`${fmtN(tot)} ${th.en} are put into boxes of ${per}. How many boxes are needed?`)},n,[n+1,n-1,n*10,tot/2].filter(x=>x>0&&Number.isInteger(x)))}
 };
+/* ===== Tahun 1 · Bab 1 (ikut Buku Teks KPM: Nombor hingga 100) ===== */
+const BTN=['#ef5b8c','#3b82f6','#22b573','#f2b705','#a66cff','#ff8a3d'];
+function boxObjs(n,kind,label,w){ // kumpulan objek dalam kotak berlabel
+  const per=5,s=34,rows=Math.max(1,Math.ceil(n/per)),bw=w||per*s+20,bh=rows*s+44;let g=`<rect x="2" y="2" width="${bw-4}" height="${bh-4}" rx="14" fill="#ffffff" stroke="#c9d6ee" stroke-width="3"/>`;
+  if(label)g+=`<text x="${bw/2}" y="26" text-anchor="middle" font-size="18" font-weight="800" fill="#123a8f">${label}</text>`;
+  for(let i=0;i<n;i++){const r=Math.floor(i/per),c=i%per;g+=`<use href="#i-${kind}" x="${10+c*s}" y="${(label?34:12)+r*s}" width="30" height="30"/>`}
+  if(!n)g+=`<text x="${bw/2}" y="${bh/2+(label?14:6)}" text-anchor="middle" font-size="15" fill="#8a93ab">(kosong)</text>`;
+  return{g,w:bw,h:bh};
+}
+function bondSvg(whole,a,b,miss){ // rajah kombinasi nombor
+  const c=(x,y,v,top)=>`<circle cx="${x}" cy="${y}" r="${top?32:28}" fill="${v==='?'?'#fff3e8':top?'#eaf2ff':'#ffffff'}" stroke="${v==='?'?'#ff8a3d':'#1f5fe0'}" stroke-width="3.5"/><text x="${x}" y="${y+10}" text-anchor="middle" font-size="28" font-weight="800" fill="${v==='?'?'#e5601a':'#123a8f'}">${v}</text>`;
+  const W=miss==='w'?'?':whole,A=miss==='a'?'?':a,B=miss==='b'?'?':b;
+  return svg(260,180,`<line x1="130" y1="44" x2="70" y2="136" stroke="#9db8f2" stroke-width="4"/><line x1="130" y1="44" x2="190" y2="136" stroke="#9db8f2" stroke-width="4"/>${c(130,40,W,1)}${c(70,140,A)}${c(190,140,B)}`,300);
+}
+function abacusSvg(t,o){
+  const rod=(x,n,lab,col)=>{let g=`<line x1="${x}" y1="20" x2="${x}" y2="170" stroke="#8a6a3a" stroke-width="5" stroke-linecap="round"/>`;for(let i=0;i<n;i++)g+=`<ellipse cx="${x}" cy="${164-i*15}" rx="22" ry="7.5" fill="${col}" stroke="#1f2a5c" stroke-width="1.5"/>`;return g+`<text x="${x}" y="198" text-anchor="middle" font-size="16" font-weight="800" fill="#123a8f">${lab}</text>`};
+  return svg(200,206,`<rect x="10" y="168" width="180" height="12" rx="4" fill="#b98a4a"/>${rod(65,t,'puluh','#3b82f6')}${rod(135,o,'sa','#f59e0b')}`,240);
+}
+function jarSvg(n,seed){ // balang berisi butang (rawak tapi tidak bertindih)
+  const pts=[];for(let k=0;pts.length<n&&k<4000;k++){const x=30+Math.random()*120,y=50+Math.random()*130;if(pts.every(p=>(p[0]-x)**2+(p[1]-y)**2>13*13))pts.push([x,y])}
+  return `<path d="M40 30 H140 V44 Q160 50 160 70 V176 Q160 196 140 196 H40 Q20 196 20 176 V70 Q20 50 40 44 Z" fill="#eef7ff" stroke="#7aa7e6" stroke-width="3"/><rect x="36" y="18" width="108" height="16" rx="5" fill="#9db8f2"/>`+pts.map((p,i)=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="5.5" fill="${BTN[i%BTN.length]}" stroke="#1f2a5c" stroke-width="1"/>`).join('');
+}
+Object.assign(G,{
+banyak(p){const ks=shuf(ITEMS),A=ks[0],B=Math.random()<.5?ks[0]:ks[1];const same=Math.random()<.2;
+  let a=ri(1,p.max||10),b;do{b=ri(1,p.max||10)}while(!same&&b===a);if(same)b=a;
+  const ga=boxObjs(a,A.id,'Kumpulan A',190),gb=boxObjs(b,B.id,'Kumpulan B',190),h=Math.max(ga.h,gb.h);
+  const vis=svg(400,h,`<g>${ga.g}</g><g transform="translate(210,0)">${gb.g}</g>`,460);
+  const o=[T('Kumpulan A','Group A'),T('Kumpulan B','Group B'),T('Sama banyak','The same')];
+  const t=pick(['lebih','kurang']);const ans=a===b?o[2]:(t==='lebih'?(a>b?o[0]:o[1]):(a<b?o[0]:o[1]));
+  return mc({q:t==='lebih'?T('Kumpulan manakah lebih banyak?','Which group has more?'):T('Kumpulan manakah lebih sedikit?','Which group has fewer?'),vis,uk:a+'-'+b+A.id+B.id},ans,o)},
+countBox(p){const k=pick(ITEMS);const n=Math.random()<(p.zero||0)?0:ri(p.min||1,p.max);const b=boxObjs(n,k.id,'',n>10?190:190);
+  return mc({q:T(`Berapakah bilangan ${k.t.ms} di dalam kotak?`,`How many ${k.t.en} are in the box?`),vis:svg(b.w,b.h,b.g,260)},n,near(n,[-2,-1,1,2,3,10],0).concat(n?[0]:[1,2]))},
+bond(p){const w=ri(p.min||3,p.max||10),a=ri(1,w-1),b=w-a,miss=pick(['a','b','w','a','b']);const ans=miss==='w'?w:miss==='a'?a:b;
+  const eq=miss==='w'?`${a} dan ${b} ialah ?`:miss==='a'?`? dan ${b} ialah ${w}`:`${a} dan ? ialah ${w}`;
+  return mc({q:T('Lengkapkan kombinasi nombor ini.','Complete this number bond.'),vis:bondSvg(w,a,b,miss),eq},ans,near(ans,[-2,-1,1,2,3],0,10))},
+abacus(p){const t=ri(p.minT||1,9),o=ri(0,9),n=t*10+o;
+  return mc({q:T('Berapakah nombor yang ditunjukkan oleh abakus?','What number does the abacus show?'),vis:abacusSvg(t,o)},n,[o*10+t,n+1,n-1,n+10,n-10,t+o].filter(x=>x!==n&&x>0&&x<=100))},
+tensOnes(p){const t=ri(1,9),o=ri(1,9),n=t*10+o,f=(a,b)=>T(`${a} puluh dan ${b} sa`,`${a} tens and ${b} ones`);
+  return mc({q:T(`${n} ialah berapa puluh dan berapa sa?`,`${n} is how many tens and how many ones?`)},f(t,o),[f(o,t),f(t,o+1>9?o-1:o+1),f(t+1>9?t-1:t+1,o),f(t,t)].filter(x=>x.ms!==f(t,o).ms))},
+placeT1(p){let n,ds;for(let k=0;k<50;k++){n=ri(11,99);ds=String(n).split('');if(ds[0]!==ds[1]&&ds[1]!=='0')break}
+  const i=ri(0,1),d=+ds[1-i];
+  if(Math.random()<.5)return mc({q:T(`Apakah nilai tempat bagi digit ${d} dalam ${n}?`,`What is the place value of the digit ${d} in ${n}?`)},PLACE[i],[PLACE[0],PLACE[1]]);
+  const ans=d*10**i;return mc({q:T(`Apakah nilai digit bagi ${d} dalam ${n}?`,`What is the digit value of ${d} in ${n}?`)},ans,[d,d*10,n,d+10].filter(x=>x!==ans))},
+seqRel(p){const max=p.max||100,t=pick(['sel','seb','ant','lebih','kurang']);let q,ans;
+  if(t==='sel'){const n=ri(0,max-1);ans=n+1;q=T(`Apakah nombor selepas ${n}?`,`What number comes after ${n}?`)}
+  else if(t==='seb'){const n=ri(1,max);ans=n-1;q=T(`Apakah nombor sebelum ${n}?`,`What number comes before ${n}?`)}
+  else if(t==='ant'){const n=ri(1,max-1);ans=n;q=T(`Apakah nombor di antara ${n-1} dan ${n+1}?`,`What number is between ${n-1} and ${n+1}?`)}
+  else{const k=pick([1,2,5,10]),n=t==='lebih'?ri(0,max-k):ri(k,max);ans=t==='lebih'?n+k:n-k;q=t==='lebih'?T(`Apakah nombor yang lebih ${k} daripada ${n}?`,`What number is ${k} more than ${n}?`):T(`Apakah nombor yang kurang ${k} daripada ${n}?`,`What number is ${k} less than ${n}?`)}
+  return mc({q},ans,near(ans,[-2,-1,1,2,10,-10],0,max))},
+orderKPM(p){const s=new Set();while(s.size<4)s.add(ri(p.min||0,p.max));const a=[...s].sort((x,y)=>x-y),f=x=>x.join(', ');
+  const up=Math.random()<.5,ans=f(up?a:a.slice().reverse());const c=[];for(let k=0;k<12;k++)c.push(f(shuf(a)));
+  return mc({q:up?T('Susunan manakah dalam tertib menaik?','Which is in ascending order?'):T('Susunan manakah dalam tertib menurun?','Which is in descending order?')},ans,c)},
+cmpStory(p){const [n1,n2]=two(),th=pick(THINGS.filter(x=>x.ms!=='setem'));let a=ri(10,p.max||99),b;do{b=ri(10,p.max||99)}while(b===a);const more=Math.random()<.5;
+  const ans=(more?a>b:a<b)?n1:n2;
+  return mc({q:T(`${n1} ada ${a} ${th.ms}. ${n2} ada ${b} ${th.ms}. Siapakah yang ada ${more?'lebih banyak':'lebih sedikit'} ${th.ms}?`,`${n1} has ${a} ${th.en}. ${n2} has ${b} ${th.en}. Who has ${more?'more':'fewer'} ${th.en}?`)},ans,[n1,n2])},
+patternKPM(p){const st=pick(p.steps),down=Math.random()<.4,len=5,s0=ri(0,Math.max(0,(p.max||100)-st*(len-1)));
+  let seq=[...Array(len)].map((_,i)=>s0+i*st);if(down)seq.reverse();const h=ri(1,len-1),ans=seq[h];
+  return mc({q:T('Apakah nombor yang tertinggal?','What is the missing number?'),eq:seq.map((x,i)=>i===h?'?':x).join(', ')},ans,near(ans,[st,-st,1,-1,2*st,10,-10],0,100))},
+estimate(p){const tg=pick(p.targets||[20,30,40,50]),n=tg+ri(-2,2);const ref=jarSvg(10);const big=jarSvg(n);
+  const vis=svg(420,232,`<g transform="translate(10,4) scale(.62)">${ref}</g><text x="66" y="150" text-anchor="middle" font-size="14" font-weight="800" fill="#123a8f">10 butang</text><g transform="translate(180,0)">${big}</g><text x="270" y="226" text-anchor="middle" font-size="16" font-weight="800" fill="#123a8f">? butang</text>`,460);
+  const f=x=>T(`lebih kurang ${x}`,`about ${x}`);
+  return mc({q:T('Anggarkan bilangan butang di dalam balang besar.','Estimate the number of buttons in the big jar.'),vis,uk:n},f(tg),[10,20,30,40,50,60,80].filter(x=>x!==tg).map(f))},
+});
 function dataQ(rows,vis,p,q0){
   const r=Math.random(),pre=q0?q0.ms+' ':'',preE=q0?q0.en+' ':'';
   const nm=rows.map(x=>x.n);
@@ -659,12 +722,13 @@ function dataQ(rows,vis,p,q0){
 const S=(ms,en,...g)=>({t:T(ms,en),g});
 const CH={
 1:[
- {t:T('Nombor Bulat hingga 100','Whole Numbers up to 100'),st:[
-   S('Kira objek','Count objects',['count',{max:20}],['nextNum',{max:30}]),
-   S('Sebut & tulis nombor','Read & write numbers',['word',{max:100}],['rods',{}]),
-   S('Banding & susun','Compare & order',['cmpWord',{max:100}],['extreme',{max:100}],['order',{max:100}]),
-   S('Nilai tempat','Place value',['rods',{}],['place',{min:11,max:99}]),
-   S('Pola & bundar','Patterns & rounding',['pattern',{max:100,steps:[1,2,5,10],down:true}],['round',{max:99,to:[10]}])]},
+ {t:T('Nombor hingga 100','Numbers up to 100'),st:[
+   S('Banyak dan sedikit','More and fewer',['banyak',{max:10}]),
+   S('Kenali 0 hingga 20','Know 0 to 20',['countBox',{max:20,zero:.15}],['word',{max:20}]),
+   S('Kombinasi nombor','Number bonds',['bond',{min:3,max:10}]),
+   S('Nombor hingga 100 & nilai tempat','Numbers to 100 & place value',['rods',{}],['abacus',{}],['tensOnes',{}],['placeT1',{}]),
+   S('Lebih, kurang & susunan','More, less & order',['seqRel',{max:100}],['orderKPM',{max:100}],['cmpStory',{max:99}]),
+   S('Pola, anggaran & bundar','Patterns, estimation & rounding',['patternKPM',{steps:[1,2,4,5,10],max:100}],['estimate',{}],['round',{max:99,to:[10]}])]},
  {t:T('Tambah dan Tolak','Addition and Subtraction'),st:[
    S('Fakta asas tambah','Basic addition facts',['add',{basic:1,max:18}]),
    S('Tambah hingga 100','Add within 100',['add',{max:100,min:10,carry:false}],['add',{max:100,min:10,carry:true}]),
@@ -686,15 +750,15 @@ const CH={
    S('Hari dalam seminggu','Days of the week',['day',{}]),
    S('Bulan dalam setahun','Months of the year',['month',{}]),
    S('Baca jam','Tell the time',['clock',{mode:'h'}])]},
- {t:T('Ukuran dan Sukatan','Measurement'),st:[
+ {t:T('Panjang, Jisim dan Isi Padu Cecair','Length, Mass and Volume of Liquid'),st:[
    S('Panjang','Length',['cmpLen',{}],['clips',{}]),
    S('Berat','Weight',['balance',{}]),
    S('Isi padu','Volume',['glass',{}])]},
- {t:T('Ruang','Space'),st:[
+ {t:T('Bentuk','Shapes'),st:[
    S('Bentuk 3D','3D shapes',['shape3',{set:['cube','cuboid','cyl','cone','sph','pyr']}]),
    S('Bentuk 2D','2D shapes',['shape2',{set:['sq','re','tr','ci']}]),
    S('Sisi & bucu','Sides & vertices',['sides',{set:['sq','re','tr']}])]},
- {t:T('Pengurusan Data','Data Handling'),st:[
+ {t:T('Data','Data'),st:[
    S('Baca piktograf','Read pictographs',['picto',{units:[1],max:6}]),
    S('Banding data','Compare data',['picto',{units:[1],max:8}])]}
 ],
@@ -904,7 +968,7 @@ function sayText(q){
   t=ms?msNums(t):enNums(t);
   if(ms)t=t.replace(/\bsetem\b/g,'stem'); // sebutan biasa
   if(ms)t=t.replace(/\bper(dua|tiga|empat|lima|enam|tujuh|lapan|sembilan|sepuluh|seratus)\b/g,'per $1');
-  return t.replace(/\s+/g,' ').replace(/\s+([?.,!])/g,'$1').replace(/\.{2,}/g,'.').trim().slice(0,320);
+  t=t.replace(/\s+/g,' ').replace(/\s+([?.,!])/g,'$1').replace(/\.{2,}/g,'.').trim().slice(0,320);return t.charAt(0).toUpperCase()+t.slice(1);
 }
 function msNums(t){
   const W=n=>+n===0?'sifar':wMs(+n);
@@ -1064,7 +1128,7 @@ acct(){
 /* ---------- permainan ---------- */
 function makeSet(gens,n,min){ // n soalan berbeza; jika ruang soalan kecil, hanya yang unik (sekurang-kurangnya 'min')
   min=min||n;const out=[],seen=new Set(),ansN={},sig=new Set();
-  const ak=q=>q.ak||okey(q.opts[q.ans]),ck=q=>okey(q.q)+'|'+(q.eq||'')+'|'+ak(q),vk=q=>okey(q.q)+'|'+(typeof q.vis==='string'?q.vis.replace(/fill="#[0-9a-f]+"/g,''):'')+(q.ak?'pic':'');
+  const ak=q=>q.ak||okey(q.opts[q.ans]),ck=q=>okey(q.q)+'|'+(q.eq||'')+'|'+ak(q)+'|'+(q.uk||''),vk=q=>okey(q.q)+'|'+(typeof q.vis==='string'?q.vis.replace(/fill="#[0-9a-f]+"/g,''):'')+(q.ak?'pic':'');
   for(let k=0;out.length<n&&k<n*60;k++){
     const q=genQ(gens(out.length)),key=ck(q);if(seen.has(key))continue; // soalan sama (isi + jawapan) tidak diulang
     const a=ak(q),used=ansN[a]||0,strict=k<n*25;
@@ -1143,7 +1207,14 @@ app.addEventListener('submit',async e=>{e.preventDefault();const f=e.target.data
   }catch(x){if(err)err.textContent=errMsg(x);if(btn)btn.disabled=false}});
 document.addEventListener('keydown',e=>{if(V.v!=='play')return;if(e.key==='ArrowLeft'){prev();return}if(e.key==='ArrowRight'||((e.key==='Enter'||e.key===' ')&&V.rec[V.view??V.i])){e.preventDefault();next();return}if(V.picked==null&&V.view===V.i&&/^[1-4]$/.test(e.key)){const k=+e.key-1;if(k<V.qs[V.i].opts.length)answer(k)}});
 document.documentElement.lang=ST.lang==='ms'?'ms':'en';
-render();setTimeout(flushPending,3000);
+/* Mod semakan kandungan: ?semak=t1b1 — senarai semua soalan bank bab itu (gambar, pilihan, jawapan, ayat suara) */
+function semakView(id){const b=BAB[id];if(!b){app.innerHTML='<p style="padding:20px">Bab tidak dijumpai.</p>';return}
+  const esc=x=>String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;');let n=0;
+  let h=`<div style="max-width:760px;margin:0 auto;padding:16px"><h1 style="font-family:'Baloo 2',sans-serif;color:#123a8f;margin:0">Semakan · Tahun ${b.tahun} · Bab ${b.n}: ${esc(tr(b.t))}</h1><p style="color:#5b6787;margin:4px 0 14px">Semua soalan dalam bank (yang akan keluar dalam game). Jawapan betul berlatar hijau. 🔊 = ayat yang dibaca suara.</p>`;
+  b.st.forEach((st,s)=>{const bank=stageBank(id,s);h+=`<h2 style="font-family:'Baloo 2',sans-serif;color:#1f5fe0;margin:22px 0 8px">Tahap ${s+1}: ${esc(tr(st.t))} <small style="color:#5b6787;font-size:14px">(${bank.length} soalan)</small></h2>`;
+    bank.forEach(q=>{n++;h+=`<div style="background:#fff;border-radius:16px;padding:12px 14px;margin-bottom:10px;box-shadow:0 2px 0 #d6e2f5"><div style="font-weight:800">${n}. ${esc(tr(q.q))} <span style="font-size:12px;color:${q.vo==='m'?'#1f5fe0':'#d0458a'}">${q.vo==='m'?'Achird':'Kore'}</span></div>${q.eq?`<div style="font:800 22px 'Baloo 2',sans-serif;margin:6px 0">${esc(q.eq)}</div>`:''}${q.vis?`<div style="margin:6px 0">${q.vis}</div>`:''}<div style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0">${q.opts.map((o,i)=>`<span style="padding:6px 12px;border-radius:10px;border:2px solid ${i===q.ans?'#18a058':'#d6e2f5'};background:${i===q.ans?'#eafaf1':'#fff'};font-weight:700">${typeof o==='string'&&o.startsWith('<svg')?o:esc(tr(o))}</span>`).join('')}</div><div style="font-size:13px;color:#5b6787">🔊 ${esc(sayText(q))}</div></div>`})});
+  app.innerHTML=h+'</div>'}
+{const m=location.search.match(/[?&]semak=(t\db\d+)/);if(m)semakView(m[1]);else{render();setTimeout(flushPending,3000)}}
 
 }
 </script>

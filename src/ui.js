@@ -115,7 +115,7 @@ function sayText(q){
   t=ms?msNums(t):enNums(t);
   if(ms)t=t.replace(/\bsetem\b/g,'stem'); // sebutan biasa
   if(ms)t=t.replace(/\bper(dua|tiga|empat|lima|enam|tujuh|lapan|sembilan|sepuluh|seratus)\b/g,'per $1');
-  return t.replace(/\s+/g,' ').replace(/\s+([?.,!])/g,'$1').replace(/\.{2,}/g,'.').trim().slice(0,320);
+  t=t.replace(/\s+/g,' ').replace(/\s+([?.,!])/g,'$1').replace(/\.{2,}/g,'.').trim().slice(0,320);return t.charAt(0).toUpperCase()+t.slice(1);
 }
 function msNums(t){
   const W=n=>+n===0?'sifar':wMs(+n);
@@ -275,7 +275,7 @@ acct(){
 /* ---------- permainan ---------- */
 function makeSet(gens,n,min){ // n soalan berbeza; jika ruang soalan kecil, hanya yang unik (sekurang-kurangnya 'min')
   min=min||n;const out=[],seen=new Set(),ansN={},sig=new Set();
-  const ak=q=>q.ak||okey(q.opts[q.ans]),ck=q=>okey(q.q)+'|'+(q.eq||'')+'|'+ak(q),vk=q=>okey(q.q)+'|'+(typeof q.vis==='string'?q.vis.replace(/fill="#[0-9a-f]+"/g,''):'')+(q.ak?'pic':'');
+  const ak=q=>q.ak||okey(q.opts[q.ans]),ck=q=>okey(q.q)+'|'+(q.eq||'')+'|'+ak(q)+'|'+(q.uk||''),vk=q=>okey(q.q)+'|'+(typeof q.vis==='string'?q.vis.replace(/fill="#[0-9a-f]+"/g,''):'')+(q.ak?'pic':'');
   for(let k=0;out.length<n&&k<n*60;k++){
     const q=genQ(gens(out.length)),key=ck(q);if(seen.has(key))continue; // soalan sama (isi + jawapan) tidak diulang
     const a=ak(q),used=ansN[a]||0,strict=k<n*25;
@@ -354,4 +354,11 @@ app.addEventListener('submit',async e=>{e.preventDefault();const f=e.target.data
   }catch(x){if(err)err.textContent=errMsg(x);if(btn)btn.disabled=false}});
 document.addEventListener('keydown',e=>{if(V.v!=='play')return;if(e.key==='ArrowLeft'){prev();return}if(e.key==='ArrowRight'||((e.key==='Enter'||e.key===' ')&&V.rec[V.view??V.i])){e.preventDefault();next();return}if(V.picked==null&&V.view===V.i&&/^[1-4]$/.test(e.key)){const k=+e.key-1;if(k<V.qs[V.i].opts.length)answer(k)}});
 document.documentElement.lang=ST.lang==='ms'?'ms':'en';
-render();setTimeout(flushPending,3000);
+/* Mod semakan kandungan: ?semak=t1b1 — senarai semua soalan bank bab itu (gambar, pilihan, jawapan, ayat suara) */
+function semakView(id){const b=BAB[id];if(!b){app.innerHTML='<p style="padding:20px">Bab tidak dijumpai.</p>';return}
+  const esc=x=>String(x).replace(/&/g,'&amp;').replace(/</g,'&lt;');let n=0;
+  let h=`<div style="max-width:760px;margin:0 auto;padding:16px"><h1 style="font-family:'Baloo 2',sans-serif;color:#123a8f;margin:0">Semakan · Tahun ${b.tahun} · Bab ${b.n}: ${esc(tr(b.t))}</h1><p style="color:#5b6787;margin:4px 0 14px">Semua soalan dalam bank (yang akan keluar dalam game). Jawapan betul berlatar hijau. 🔊 = ayat yang dibaca suara.</p>`;
+  b.st.forEach((st,s)=>{const bank=stageBank(id,s);h+=`<h2 style="font-family:'Baloo 2',sans-serif;color:#1f5fe0;margin:22px 0 8px">Tahap ${s+1}: ${esc(tr(st.t))} <small style="color:#5b6787;font-size:14px">(${bank.length} soalan)</small></h2>`;
+    bank.forEach(q=>{n++;h+=`<div style="background:#fff;border-radius:16px;padding:12px 14px;margin-bottom:10px;box-shadow:0 2px 0 #d6e2f5"><div style="font-weight:800">${n}. ${esc(tr(q.q))} <span style="font-size:12px;color:${q.vo==='m'?'#1f5fe0':'#d0458a'}">${q.vo==='m'?'Achird':'Kore'}</span></div>${q.eq?`<div style="font:800 22px 'Baloo 2',sans-serif;margin:6px 0">${esc(q.eq)}</div>`:''}${q.vis?`<div style="margin:6px 0">${q.vis}</div>`:''}<div style="display:flex;flex-wrap:wrap;gap:6px;margin:6px 0">${q.opts.map((o,i)=>`<span style="padding:6px 12px;border-radius:10px;border:2px solid ${i===q.ans?'#18a058':'#d6e2f5'};background:${i===q.ans?'#eafaf1':'#fff'};font-weight:700">${typeof o==='string'&&o.startsWith('<svg')?o:esc(tr(o))}</span>`).join('')}</div><div style="font-size:13px;color:#5b6787">🔊 ${esc(sayText(q))}</div></div>`})});
+  app.innerHTML=h+'</div>'}
+{const m=location.search.match(/[?&]semak=(t\db\d+)/);if(m)semakView(m[1]);else{render();setTimeout(flushPending,3000)}}
