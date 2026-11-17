@@ -274,14 +274,15 @@ acct(){
 
 /* ---------- permainan ---------- */
 function makeSet(gens,n,min){ // n soalan berbeza; jika ruang soalan kecil, hanya yang unik (sekurang-kurangnya 'min')
-  min=min||n;const out=[],seen=new Set(),ansN={},sig=new Set();
+  min=min||n;const out=[],seen=new Set(),ansN={},sig=new Set(),gnN={};
   const ak=q=>q.ak||okey(q.opts[q.ans]),ck=q=>okey(q.q)+'|'+(q.eq||'')+'|'+ak(q)+'|'+(q.uk||''),vk=q=>okey(q.q)+'|'+(typeof q.vis==='string'?q.vis.replace(/fill="#[0-9a-f]+"/g,''):'')+(q.ak?'pic':'');
   for(let k=0;out.length<n&&k<n*60;k++){
     const q=genQ(gens(out.length)),key=ck(q);if(seen.has(key))continue; // soalan sama (isi + jawapan) tidak diulang
+    if(q.cap&&(gnN[q.gn]||0)>=q.cap)continue; // had bilangan bagi jenis soalan tertentu
     const a=ak(q),used=ansN[a]||0,strict=k<n*25;
     if(used&&(strict||used>=2||sig.has(a+vk(q))))continue;
-    seen.add(key);sig.add(a+vk(q));ansN[a]=used+1;out.push(q)}
-  for(let k=0;out.length<n&&k<n*60;k++){const q=genQ(gens(out.length)),key=ck(q);if(!seen.has(key)){seen.add(key);out.push(q)}}
+    seen.add(key);sig.add(a+vk(q));ansN[a]=used+1;gnN[q.gn]=(gnN[q.gn]||0)+1;out.push(q)}
+  for(let k=0;out.length<n&&k<n*60;k++){const q=genQ(gens(out.length)),key=ck(q);if(!seen.has(key)&&!(q.cap&&(gnN[q.gn]||0)>=q.cap)){seen.add(key);gnN[q.gn]=(gnN[q.gn]||0)+1;out.push(q)}}
   const vs=new Set(out.map(vk));for(let k=0;out.length<min&&k<min*60;k++){const q=genQ(gens(out.length));if(!vs.has(vk(q))){vs.add(vk(q));out.push(q)}}
   while(out.length<min)out.push(genQ(gens(out.length)));return out}
 /* bank soalan tetap (seeded) — supaya suara boleh dijana & disimpan awal */
