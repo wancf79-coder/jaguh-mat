@@ -508,7 +508,7 @@ story(p){const op=pick(p.ops),[n1,n2]=two(),th=pick(THINGS);let a,b,ans,q;
   if(op==='+'){a=ri(p.min||2,Math.floor(p.max*.6));b=ri(2,p.max-a);ans=a+b;
     q=T(`${n1} ada ${fmtN(a)} ${th.ms}. ${n2} memberi ${fmtN(b)} ${th.ms} lagi kepada ${n1}. Berapakah jumlah ${th.ms} ${n1} sekarang?`,`${n1} has ${fmtN(a)} ${th.en}. ${n2} gives ${n1} ${fmtN(b)} more ${th.en}. How many ${th.en} does ${n1} have now?`)}
   else if(op==='-'){a=ri(Math.max(5,p.min||5),p.max);b=ri(1,a-1);ans=a-b;
-    q=T(`${n1} ada ${fmtN(a)} ${th.ms}. Dia memberi ${fmtN(b)} ${th.ms} kepada ${n2}. Berapakah ${th.ms} ${n1} yang tinggal?`,`${n1} has ${fmtN(a)} ${th.en}. ${n1} gives ${fmtN(b)} ${th.en} to ${n2}. How many ${th.en} does ${n1} have left?`)}
+    q=T(`${n1} ada ${fmtN(a)} ${th.ms}. ${n1} memberi ${fmtN(b)} ${th.ms} kepada ${n2}. Berapakah ${th.ms} ${n1} yang tinggal?`,`${n1} has ${fmtN(a)} ${th.en}. ${n1} gives ${fmtN(b)} ${th.en} to ${n2}. How many ${th.en} does ${n1} have left?`)}
   else if(op==='×'){a=ri(2,p.big?9:5);b=pick(p.tables||[2,3,4,5,10]);ans=a*b;
     q=T(`Ada ${a} kotak. Setiap kotak berisi ${b} ${th.ms}. Berapakah jumlah ${th.ms} semuanya?`,`There are ${a} boxes. Each box has ${b} ${th.en}. How many ${th.en} are there altogether?`)}
   else{b=pick(p.tables||[2,3,4,5,10]);ans=ri(2,10);a=ans*b;
@@ -562,7 +562,7 @@ moneyStory(p){const op=pick(p.ops),[n1]=two(),u=p.cents?5:100,R=x=>Math.round(x/
   if(op==='+'){a=R(ri(u,p.max*.5));b=R(ri(u,p.max-a));ans=a+b;const x=pick(items),y=pick(items.filter(i=>i!==x));
     q=T(`${n1} membeli ${x.ms} berharga ${rm(a)} dan ${y.ms} berharga ${rm(b)}. Berapakah jumlah harganya?`,`${n1} buys ${x.en} for ${rm(a)} and ${y.en} for ${rm(b)}. What is the total price?`)}
   else if(op==='-'){a=R(ri(u*4,p.max));b=R(ri(u,a-u));ans=a-b;const x=pick(items);
-    q=T(`${n1} ada ${rm(a)}. Dia membeli ${x.ms} berharga ${rm(b)}. Berapakah baki wang ${n1}?`,`${n1} has ${rm(a)}. ${n1} buys ${x.en} for ${rm(b)}. How much money is left?`)}
+    q=T(`${n1} ada ${rm(a)}. ${n1} membeli ${x.ms} berharga ${rm(b)}. Berapakah baki wang ${n1}?`,`${n1} has ${rm(a)}. ${n1} buys ${x.en} for ${rm(b)}. How much money is left?`)}
   else if(op==='×'){b=ri(2,9);a=R(ri(u,Math.floor(p.max/b)));ans=a*b;const x=pick(items);
     q=T(`Harga ${x.ms.replace(/^a /,'')} ialah ${rm(a)}. Berapakah harga ${b} unit?`,`One unit costs ${rm(a)}. What is the price of ${b} units?`)}
   else{b=ri(2,9);ans=R(ri(u,Math.floor(p.max/b)));a=ans*b;
@@ -619,7 +619,7 @@ uconv(p){const u=pick(p.pairs),[a,b,f]=u;
 mstory(p){const K=pick(p.kinds),U={len:['cm',T('reben','ribbon'),T('panjang','long')],mass:['g',T('tepung','flour'),T('berat','heavy')],vol:['ml',T('jus','juice'),T('isi padu','volume')]}[K];
   const [n1,n2]=two(),a=ri(p.min||10,p.max),b=ri(5,a-1),plus=Math.random()<.5,ans=plus?a+b:a-b;
   const q=plus?T(`${n1} ada ${fmtN(a)} ${U[0]} ${U[1].ms}. ${n2} ada ${fmtN(b)} ${U[0]} ${U[1].ms}. Berapakah jumlah ${U[1].ms} mereka?`,`${n1} has ${fmtN(a)} ${U[0]} of ${U[1].en}. ${n2} has ${fmtN(b)} ${U[0]} of ${U[1].en}. How much ${U[1].en} do they have altogether?`)
-             :T(`${n1} ada ${fmtN(a)} ${U[0]} ${U[1].ms}. Dia menggunakan ${fmtN(b)} ${U[0]}. Berapakah baki ${U[1].ms} ${n1}?`,`${n1} has ${fmtN(a)} ${U[0]} of ${U[1].en}. ${n1} uses ${fmtN(b)} ${U[0]}. How much ${U[1].en} is left?`);
+             :T(`${n1} ada ${fmtN(a)} ${U[0]} ${U[1].ms}. ${n1} menggunakan ${fmtN(b)} ${U[0]}. Berapakah baki ${U[1].ms} ${n1}?`,`${n1} has ${fmtN(a)} ${U[0]} of ${U[1].en}. ${n1} uses ${fmtN(b)} ${U[0]}. How much ${U[1].en} is left?`);
   return mc({q},fmtN(ans)+' '+U[0],near(ans,[10,-10,1,-1,5],1).map(x=>fmtN(x)+' '+U[0]).concat([fmtN(plus?a-b:a+b)+' '+U[0]]))},
 /* --- ruang --- */
 shape2(p){const k=pick(p.set);return mc({q:T('Apakah nama bentuk ini?','What is the name of this shape?'),vis:shape2Svg(k)},SH2[k].t,p.set.concat(['sq','re','tr','ci']).map(x=>SH2[x].t))},
