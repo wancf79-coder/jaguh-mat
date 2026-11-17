@@ -313,8 +313,11 @@ const NAMES=['Ali','Siti','Muthu','Mei Ling','Aiman','Kavitha','Jun Wei','Aisyah
 const THINGS=[T('guli','marbles'),T('buku','books'),T('pensel','pencils'),T('gula-gula','sweets'),T('setem','stamps'),T('kad','cards'),T('belon','balloons'),T('manik','beads'),T('biskut','biscuits')];
 const ITEMS=[{id:'apple',t:T('epal','apples')},{id:'star',t:T('bintang','stars')},{id:'ball',t:T('bola','balls')},{id:'fish',t:T('ikan','fish')},{id:'banana',t:T('pisang','bananas')},{id:'orange',t:T('oren','oranges')},{id:'strawberry',t:T('strawberi','strawberries')},{id:'grape',t:T('tangkai anggur','bunches of grapes')},{id:'cat',t:T('kucing','cats')},{id:'duck',t:T('itik','ducks')},{id:'butterfly',t:T('rama-rama','butterflies')},{id:'flower',t:T('bunga','flowers')},{id:'car',t:T('kereta','cars')},{id:'bicycle',t:T('basikal','bicycles')},{id:'bus',t:T('bas','buses')},{id:'plane',t:T('kapal terbang','aeroplanes')},{id:'boat',t:T('bot','boats')},{id:'phone',t:T('telefon','phones')},{id:'pencil',t:T('pensel','pencils')},{id:'book',t:T('buku','books')},{id:'bag',t:T('beg sekolah','school bags')},{id:'umbrella',t:T('payung','umbrellas')},{id:'cup',t:T('cawan','cups')},{id:'balloon',t:T('belon','balloons')},{id:'kite',t:T('wau','kites')},{id:'chicken',t:T('ayam','chickens')},{id:'rabbit',t:T('arnab','rabbits')},{id:'turtle',t:T('penyu','turtles')},{id:'bird',t:T('burung','birds')},{id:'frog',t:T('katak','frogs')},{id:'bee',t:T('lebah','bees')},{id:'snail',t:T('siput','snails')},{id:'watermelon',t:T('potong tembikai','watermelon slices')},{id:'pineapple',t:T('nanas','pineapples')},{id:'mango',t:T('mangga','mangoes')},{id:'rambutan',t:T('rambutan','rambutans')},{id:'icecream',t:T('aiskrim','ice creams')},{id:'cake',t:T('kek cawan','cupcakes')},{id:'hat',t:T('topi','hats')},{id:'shoe',t:T('kasut','shoes')},{id:'leaf',t:T('daun','leaves')}];
 /* dek gambar: setiap soalan dalam satu bank dapat objek berbeza (tiada ulangan sehingga semua dah dipakai) */
-let ITEM_DECK=[];const itemDeckReset=()=>{ITEM_DECK=[]};
+let ITEM_DECK=[],NAME_DECK=[],OBJ_DECK=[];let DECKS={};const itemDeckReset=()=>{ITEM_DECK=[];NAME_DECK=[];OBJ_DECK=[];DECKS={}};const freshN=(lo,hi,ok)=>{const u=DECKS.__u||(DECKS.__u=new Set());let n;for(let k=0;k<80;k++){n=ri(lo,hi);if(!u.has(n)&&(!ok||ok(n)))break}u.add(n);return n};const deck=(k,a)=>{if(!DECKS[k]||!DECKS[k].length)DECKS[k]=shuf(a);return DECKS[k].pop()};
 function nextItem(){if(!ITEM_DECK.length)ITEM_DECK=shuf(ITEMS);return ITEM_DECK.pop()}
+const OBJS=[T('guli','marbles'),T('buku','books'),T('pensel','pencils'),T('gula-gula','sweets'),T('kad','cards'),T('belon','balloons'),T('manik','beads'),T('biskut','biscuits'),T('pemadam','erasers'),T('kereta mainan','toy cars'),T('butang','buttons'),T('bola','balls'),T('epal','apples'),T('limau','oranges'),T('bunga','flowers'),T('pembaris','rulers')];
+const NAMES2=NAMES.concat(['Hana','Arif','Priya','Wei Jie']);const nextName=()=>{if(!NAME_DECK.length)NAME_DECK=shuf(NAMES2);return NAME_DECK.pop()};
+const nextObj=()=>{if(!OBJ_DECK.length)OBJ_DECK=shuf(OBJS);return OBJ_DECK.pop()};
 const two=()=>{const a=pick(NAMES);let b=pick(NAMES);while(b===a)b=pick(NAMES);return[a,b]};
 const DAYS=[T('Isnin','Monday'),T('Selasa','Tuesday'),T('Rabu','Wednesday'),T('Khamis','Thursday'),T('Jumaat','Friday'),T('Sabtu','Saturday'),T('Ahad','Sunday')];
 const MONTHS=[T('Januari','January'),T('Februari','February'),T('Mac','March'),T('April','April'),T('Mei','May'),T('Jun','June'),T('Julai','July'),T('Ogos','August'),T('September','September'),T('Oktober','October'),T('November','November'),T('Disember','December')];
@@ -503,8 +506,8 @@ word(p){const n=ri(p.min||0,p.max),cand=[n+1,n-1,n+10,n-10,n+100,n-100,n+1000].f
   const s=String(n);if(s.length>1){const r=+s.split('').reverse().join('');if(r!==n&&String(r).length===s.length&&r<=p.max)cand.push(r)}
   if(Math.random()<.5)return mc({q:T('Pilih perkataan bagi nombor ini.','Choose the number name.'),eq:fmtN(n)},NW(n),cand.map(NW));
   return mc({q:T(`Pilih angka bagi "${wMs(n)}".`,`Choose the numeral for "${wEn(n)}".`)},n,cand)},
-rods(){const t=ri(1,9),o=ri(0,9),n=t*10+o;
-  return mc({q:T('Satu rod ada 10 blok. Berapakah jumlah semua blok?','One rod has 10 blocks. How many blocks are there altogether?'),vis:rods(t,o)},n,[o*10+t,n+1,n-1,n+10,n-10,t+o].filter(x=>x!==n&&x>0))},
+rods(){const n=freshN(10,99),t=Math.floor(n/10),o=n%10;
+  return mc({q:T('Satu rod ada 10 blok. Berapakah jumlah semua blok?','One rod has 10 blocks. How many blocks are there altogether?'),vis:rods(t,o)},n,[o*10+t,n+1,n-1,n+10,n-10,t+o].filter(x=>x!==n&&x>0&&x<=100))},
 place(p){let n,ds;for(let k=0;k<50;k++){n=ri(p.min,p.max);ds=String(n).split('');if(new Set(ds).size===ds.length&&!ds.includes('0'))break}
   const L=ds.length,i=ri(0,L-1),d=+ds[L-1-i];
   if(Math.random()<.5){const ans=d*10**i;
@@ -519,7 +522,7 @@ cmpSym(p){const a=ri(p.min||1,p.max);let b=Math.random()<.2?a:ri(p.min||1,p.max)
 extreme(p){const s=new Set();while(s.size<4)s.add(ri(p.min||1,p.max));const a=[...s],big=Math.random()<.5,ans=big?Math.max(...a):Math.min(...a);
   return mc({q:big?T('Nombor manakah paling besar?','Which number is the greatest?'):T('Nombor manakah paling kecil?','Which number is the smallest?')},ans,a.filter(x=>x!==ans))},
 order(p){const s=new Set();while(s.size<4)s.add(ri(p.min||1,p.max));const a=[...s].sort((x,y)=>x-y),f=x=>x.map(fmtN).join(', ');
-  const up=Math.random()<.5,ans=f(up?a:a.slice().reverse());const c=[];for(let k=0;k<12;k++)c.push(f(shuf(a)));
+  const up=deck('ord',[1,0])===1,ans=f(up?a:a.slice().reverse());const c=[];for(let k=0;k<12;k++)c.push(f(shuf(a)));
   return mc({q:up?T('Susunan manakah dari kecil ke besar?','Which order is from smallest to greatest?'):T('Susunan manakah dari besar ke kecil?','Which order is from greatest to smallest?')},ans,c)},
 pattern(p){const st=pick(p.steps),down=p.down&&Math.random()<.4,len=5,s0=ri(p.min||0,Math.max(p.min||0,p.max-st*(len-1)));
   let seq=[...Array(len)].map((_,i)=>s0+i*st);if(down)seq.reverse();const h=ri(1,len-1),ans=seq[h];
@@ -725,24 +728,25 @@ sifar(p){const k=nextItem(),L=['A','B','C'],z=ri(0,2),ns=L.map((_,i)=>i===z?0:ri
 bond(p){const w=ri(p.min||3,p.max||10),a=ri(1,w-1),b=w-a,miss=pick(['a','b','w','a','b']);const ans=miss==='w'?w:miss==='a'?a:b;
   const eq=miss==='w'?`${a} dan ${b} ialah ?`:miss==='a'?`? dan ${b} ialah ${w}`:`${a} dan ? ialah ${w}`;
   return mc({q:T('Lengkapkan kombinasi nombor ini.','Complete this number bond.'),vis:bondSvg(w,a,b,miss),eq},ans,near(ans,[-2,-1,1,2,3,-3],1,10))},
-abacus(p){const t=ri(p.minT||1,9),o=ri(0,9),n=t*10+o;
+abacus(p){const n=freshN((p.minT||1)*10,99),t=Math.floor(n/10),o=n%10;
   return mc({q:T('Berapakah nombor pada abakus ini?','What number is on this abacus?'),vis:abacusSvg(t,o)},n,[o*10+t,n+1,n-1,n+10,n-10,t+o].filter(x=>x!==n&&x>0&&x<=100))},
-tensOnes(p){const t=ri(1,9),o=ri(1,9),n=t*10+o,f=(a,b)=>T(`${a} puluh dan ${b} sa`,`${a} tens and ${b} ones`);
+tensOnes(p){const n=freshN(11,98,x=>x%10>0&&x%11>0),t=Math.floor(n/10),o=n%10,f=(a,b)=>T(`${a} puluh dan ${b} sa`,`${a} tens and ${b} ones`);
+  if(Math.random()<.45)return mc({q:T(`Nombor manakah ada ${t} puluh dan ${o} sa?`,`Which number has ${t} tens and ${o} ones?`)},n,[o*10+t,n+1,n-1,n+10,n-10,t+o].filter(x=>x!==n&&x>0&&x<100));
   return mc({q:T(`${n} ialah berapa puluh dan berapa sa?`,`${n} is how many tens and how many ones?`)},f(t,o),[f(o,t),f(t,o+1>9?o-1:o+1),f(t+1>9?t-1:t+1,o),f(t,t)].filter(x=>x.ms!==f(t,o).ms))},
-placeT1(p){let n,ds;for(let k=0;k<50;k++){n=ri(11,99);ds=String(n).split('');if(ds[0]!==ds[1]&&ds[1]!=='0')break}
-  const i=ri(0,1),d=+ds[1-i];
-  if(Math.random()<.5)return mc({q:T(`Apakah nilai tempat bagi digit ${d} dalam ${n}?`,`What is the place value of the digit ${d} in ${n}?`)},PLACE[i],[PLACE[0],PLACE[1]]);
+placeT1(p){const n=freshN(12,98,x=>x%10>0&&x%11>0),ds=String(n).split('');
+  const i=deck('pti',[0,1]),d=+ds[1-i];
+  if(deck('ptk',[0,1]))return mc({q:T(`Apakah nilai tempat bagi digit ${d} dalam ${n}?`,`What is the place value of the digit ${d} in ${n}?`)},PLACE[i],[PLACE[0],PLACE[1]]);
   const ans=d*10**i;return mc({q:T(`Apakah nilai digit bagi ${d} dalam ${n}?`,`What is the digit value of ${d} in ${n}?`)},ans,[d,d*10,n,d+10].filter(x=>x!==ans))},
-seqRel(p){const max=p.max||100,t=pick(['sel','seb','ant','lebih','kurang']);let q,ans;
-  if(t==='sel'){const n=ri(0,max-1);ans=n+1;q=T(`Apakah nombor selepas ${n}?`,`What number comes after ${n}?`)}
-  else if(t==='seb'){const n=ri(1,max);ans=n-1;q=T(`Apakah nombor sebelum ${n}?`,`What number comes before ${n}?`)}
-  else if(t==='ant'){const n=ri(1,max-1);ans=n;q=T(`Apakah nombor di antara ${n-1} dan ${n+1}?`,`What number is between ${n-1} and ${n+1}?`)}
-  else{const k=pick([1,2,5,10]),n=t==='lebih'?ri(0,max-k):ri(k,max);ans=t==='lebih'?n+k:n-k;q=t==='lebih'?T(`Apakah nombor yang lebih ${k} daripada ${n}?`,`What number is ${k} more than ${n}?`):T(`Apakah nombor yang kurang ${k} daripada ${n}?`,`What number is ${k} less than ${n}?`)}
-  return mc({q},ans,near(ans,[-2,-1,1,2,10,-10],0,max))},
-orderKPM(p){const s=new Set();while(s.size<4)s.add(ri(p.min||0,p.max));const a=[...s].sort((x,y)=>x-y),f=x=>x.join(', ');
-  const up=Math.random()<.5,ans=f(up?a:a.slice().reverse());const c=[];for(let k=0;k<12;k++)c.push(f(shuf(a)));
+seqRel(p){const max=p.max||100,t=deck('seq',['sel','seb','ant','lebih','kurang']);let q,ans;
+  if(t==='sel'){const n=ri(1,max-1);ans=n+1;q=T(`Apakah nombor selepas ${n}?`,`What number comes after ${n}?`)}
+  else if(t==='seb'){const n=ri(2,max);ans=n-1;q=T(`Apakah nombor sebelum ${n}?`,`What number comes before ${n}?`)}
+  else if(t==='ant'){const n=ri(2,max-1);ans=n;q=T(`Apakah nombor di antara ${n-1} dan ${n+1}?`,`What number is between ${n-1} and ${n+1}?`)}
+  else{const k=deck('seqk'+t,[1,2,10]),n=t==='lebih'?ri(1,max-k):ri(k+1,max);ans=t==='lebih'?n+k:n-k;q=t==='lebih'?T(`Apakah nombor yang lebih ${k} daripada ${n}?`,`What number is ${k} more than ${n}?`):T(`Apakah nombor yang kurang ${k} daripada ${n}?`,`What number is ${k} less than ${n}?`)}
+  return mc({q},ans,near(ans,[-2,-1,1,2,10,-10],1,max))},
+orderKPM(p){const s=new Set();while(s.size<4)s.add(ri(p.min||1,p.max));const a=[...s].sort((x,y)=>x-y),f=x=>x.join(', ');
+  const up=deck('ord',[1,0])===1,ans=f(up?a:a.slice().reverse());const c=[];for(let k=0;k<12;k++)c.push(f(shuf(a)));
   return mc({q:up?T('Susunan manakah dalam tertib menaik?','Which is in ascending order?'):T('Susunan manakah dalam tertib menurun?','Which is in descending order?')},ans,c)},
-cmpStory(p){const [n1,n2]=two(),th=pick(THINGS.filter(x=>x.ms!=='setem'));let a=ri(10,p.max||99),b;do{b=ri(10,p.max||99)}while(b===a);const more=Math.random()<.5;
+cmpStory(p){const n1=nextName();let n2=nextName();if(n2===n1)n2=nextName();const th=nextObj();let a=ri(10,p.max||99),b;do{b=ri(10,p.max||99)}while(b===a);const more=Math.random()<.5;
   const ans=(more?a>b:a<b)?n1:n2;
   return mc({q:T(`${n1} ada ${a} ${th.ms}. ${n2} ada ${b} ${th.ms}. Siapakah yang ada ${more?'lebih banyak':'lebih sedikit'} ${th.ms}?`,`${n1} has ${a} ${th.en}. ${n2} has ${b} ${th.en}. Who has ${more?'more':'fewer'} ${th.en}?`)},ans,[n1,n2])},
 patternKPM(p){const st=pick(p.steps),down=Math.random()<.4,len=5,s0=ri(0,Math.max(0,(p.max||100)-st*(len-1)));
@@ -772,8 +776,8 @@ const CH={
    S('Banyak dan sedikit','More and fewer',['banyak',{max:10}]),
    S('Kenali 0 hingga 20','Know 0 to 20',['countBox',{max:20}],['countBox',{max:20}],['word',{max:20}],['word',{max:20}],['sifar',{cap:2}]),
    S('Kombinasi nombor','Number bonds',['bond',{min:3,max:10}]),
-   S('Nombor hingga 100 & nilai tempat','Numbers to 100 & place value',['rods',{}],['abacus',{}],['tensOnes',{}],['placeT1',{}]),
-   S('Lebih, kurang & susunan','More, less & order',['seqRel',{max:100}],['orderKPM',{max:100}],['cmpStory',{max:99}]),
+   S('Nombor hingga 100 & nilai tempat','Numbers to 100 & place value',['rods',{cap:5}],['abacus',{cap:5}],['tensOnes',{cap:5}],['placeT1',{cap:5}]),
+   S('Lebih, kurang & susunan','More, less & order',['seqRel',{max:100,cap:8}],['orderKPM',{max:100,cap:5}],['cmpStory',{max:99,cap:7}]),
    S('Pola, anggaran & bundar','Patterns, estimation & rounding',['patternKPM',{steps:[1,2,4,5,10],max:100}],['estimate',{}],['round',{min:5,max:99,to:[10],pos:1}])]},
  {t:T('Tambah dan Tolak','Addition and Subtraction'),st:[
    S('Fakta asas tambah','Basic addition facts',['add',{basic:1,max:18}]),
