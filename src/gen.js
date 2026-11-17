@@ -66,11 +66,14 @@ function objs(n,kind){
   for(let i=0;i<n;i++){const r=Math.floor(i/per),c=i%per;g+=`<use href="#i-${kind}" x="${c*s+(c>=5?gap:0)+3}" y="${r*s+3}" width="32" height="32"/>`}
   return svg(per*s+gap,Math.ceil(n/per)*s,g);
 }
-function rods(t,o){
-  let g='',x=4;
-  for(let i=0;i<t;i++){g+=`<g transform="translate(${x},4)"><rect width="18" height="150" rx="3" fill="#3b82f6" stroke="#1e3a8a" stroke-width="2"/>${[...Array(9)].map((_,k)=>`<line x1="0" x2="18" y1="${15*(k+1)}" y2="${15*(k+1)}" stroke="#1e3a8a" stroke-width="1.4"/>`).join('')}</g>`;x+=24}
-  x+=10;for(let i=0;i<o;i++){const c=i%2,r=Math.floor(i/2);g+=`<rect x="${x+c*19}" y="${141-r*19}" width="15" height="15" rx="2" fill="#f59e0b" stroke="#92400e" stroke-width="2"/>`}
-  return svg(x+(o?42:0),160,g);
+function rods(t,o,lab){
+  let g='',x=4;const y0=lab?24:4;
+  for(let i=0;i<t;i++){g+=`<g transform="translate(${x},${y0})"><rect width="20" height="150" rx="3" fill="#3b82f6" stroke="#1e3a8a" stroke-width="2"/>${[...Array(9)].map((_,k)=>`<line x1="0" x2="20" y1="${15*(k+1)}" y2="${15*(k+1)}" stroke="#1e3a8a" stroke-width="1.4"/>`).join('')}</g>`;
+    if(lab)g+=`<text x="${x+10}" y="17" text-anchor="middle" font-size="15" font-weight="800" fill="#1e3a8a">10</text>`;x+=lab?28:24}
+  x+=10;const cs=lab?20:15,gap=lab?24:19;
+  for(let i=0;i<o;i++){const c=i%2,r=Math.floor(i/2),cx=x+c*gap,cy=y0+150-cs-r*gap;g+=`<rect x="${cx}" y="${cy}" width="${cs}" height="${cs}" rx="2" fill="#f59e0b" stroke="#92400e" stroke-width="2"/>`;
+    if(lab)g+=`<text x="${cx+cs/2}" y="${cy+cs/2+5}" text-anchor="middle" font-size="13" font-weight="800" fill="#5a2a00">1</text>`}
+  return svg(x+(o?2*gap+4:0),y0+156,g);
 }
 const FRC=[['#ff8a3d','#fff3e8','#8a3b0c'],['#3b82f6','#eaf2ff','#1e3a8a'],['#22b573','#eafaf1','#145c3a'],['#a66cff','#f4efff','#4b2a8f'],['#ef5b8c','#fff0f5','#8f1d45'],['#f2b705','#fff9e0','#7a5a00']];
 function fracSvg(den,num,kind,o){
@@ -238,7 +241,7 @@ word(p){const n=ri(p.min||0,p.max),cand=[n+1,n-1,n+10,n-10,n+100,n-100,n+1000].f
   if(Math.random()<.5)return mc({q:T('Pilih perkataan bagi nombor ini.','Choose the number name.'),eq:fmtN(n)},NW(n),cand.map(NW));
   return mc({q:T(`Pilih angka bagi "${wMs(n)}".`,`Choose the numeral for "${wEn(n)}".`)},n,cand)},
 rods(){const n=freshN(10,99),t=Math.floor(n/10),o=n%10;
-  return mc({q:T('Satu rod ada 10 blok. Berapakah jumlah semua blok?','One rod has 10 blocks. How many blocks are there altogether?'),vis:rods(t,o)},n,[o*10+t,n+1,n-1,n+10,n-10,t+o].filter(x=>x!==n&&x>0&&x<=100))},
+  return mc({q:T('Kira semua kotak. Berapakah jumlahnya?','Count all the boxes. How many are there?'),vis:rods(t,o,1)},n,[o*10+t,n+1,n-1,n+10,n-10,t+o].filter(x=>x!==n&&x>0&&x<=100))},
 place(p){let n,ds;for(let k=0;k<50;k++){n=ri(p.min,p.max);ds=String(n).split('');if(new Set(ds).size===ds.length&&!ds.includes('0'))break}
   const L=ds.length,i=ri(0,L-1),d=+ds[L-1-i];
   if(Math.random()<.5){const ans=d*10**i;
