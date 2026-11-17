@@ -505,7 +505,7 @@ function takePic(n,k,id){const s=44,per=5,rows=Math.ceil(n/per),w=per*s+20,h=row
   return svg(w,h,`<rect x="1" y="1" width="${w-2}" height="${h-2}" rx="12" fill="#fff" stroke="#c9d6ea" stroke-width="2"/>`+iconRow(n,id,12,12,s,per,k),330)}
 function twoRows(a,b,A,B){const s=34,w=Math.max(a,b)*s+20,h=2*s+30;
   return svg(w,h,`<rect x="1" y="1" width="${w-2}" height="${h-2}" rx="12" fill="#fff" stroke="#c9d6ea" stroke-width="2"/>`+iconRow(a,A.id,12,10,s,99)+iconRow(b,B.id,12,20+s,s,99),Math.min(w*1.1,460))}
-function groupsPic(k,m,id){const per=m===10?5:m===5?5:2,s=m>=5?30:36,bw=per*s+14,bh=Math.ceil(m/per)*s+14,cols=Math.min(k,3),gw=bw+10;
+function groupsPic(k,m,id){const per=m===10?5:m===5?5:2,s=m>=5?36:44,bw=per*s+14,bh=Math.ceil(m/per)*s+14,cols=Math.min(k,m>=5?2:3),gw=bw+10;
   let g='';for(let i=0;i<k;i++){const x=(i%cols)*gw,y=Math.floor(i/cols)*(bh+10);g+=`<rect x="${x+1}" y="${y+1}" width="${bw}" height="${bh}" rx="10" fill="#fff" stroke="#c9d6ea" stroke-width="2"/>`+iconRow(m,id,x+8,y+8,s,per)}
   return svg(cols*gw,Math.ceil(k/cols)*(bh+10),g,Math.min(cols*gw*1.2,480))}
 const eqs=(xs,op,r)=>xs.join(` ${op} `)+` = ${r}`;
@@ -542,8 +542,9 @@ tambahUlang(p){const it=nextItem(),X=it.t.ms,m=deck('tum',[2,4,5,10,2,5]),k=m===
   return mc({q:T(`Ada ${k} kumpulan ${X}. Setiap kumpulan ada ${m} ${X}. Berapakah ${X} semuanya?`,`There are ${k} groups of ${m} ${it.t.en}. How many altogether?`),vis},c,[c-m,c+m,m+k,c+1,c-1].filter(x=>x>0&&x!==c))},
 tolakUlang(p){const t=deck('tlu',[0,0,1]);
   if(t===1){const m=ri(2,5),k=ri(2,4),n=m*k+deck('tlr',[1,1,2,0])*m,r=n-k*m;return mc({q:T('Selesaikan tolak berturut-turut ini.','Solve this repeated subtraction.'),eq:[n,...Array(k).fill(m)].join(' − ')+' = ?'},r,near(r,[m,-m,1,2,-1,3,m+1],0,30))}
-  const nm=nextName(),O=nextObj(),m=ri(2,5),k=ri(2,4),n=m*k;
-  return mc({q:T(`${nm} ada ${n} ${O.ms}. ${nm} memberi sama banyak kepada ${k} orang kawannya. Berapakah ${O.ms} yang setiap orang dapat?`,`Sharing`)},m,near(m,[1,-1,2,-2,3,k],1,30).filter(x=>x!==k&&x!==n))},
+  const nm=nextName(),it=(()=>{const ok=new Set(['apple','banana','orange','strawberry','mango','rambutan','pineapple','cake','icecream','pencil','book','ball','balloon','star','flower','kite','hat','cup','leaf']);for(let z=0;z<60;z++){const x=nextItem();if(ok.has(x.id))return x}return ITEMS[0]})(),O=it.t,m=ri(2,5),k=ri(2,4),n=m*k,sw=6*44+20,sh=Math.ceil(n/6)*44+20;
+  const vis=svg(sw,sh,`<rect x="1" y="1" width="${sw-2}" height="${sh-2}" rx="12" fill="#fff" stroke="#c9d6ea" stroke-width="2"/>`+iconRow(n,it.id,12,12,44,6),340);
+  return mc({q:T(`${nm} ada ${n} ${O.ms}. ${nm} memberi sama banyak kepada ${k} orang kawannya. Berapakah ${O.ms} yang setiap orang dapat?`,`Sharing`),vis},m,near(m,[1,-1,2,-2,3,k],1,30).filter(x=>x!==k&&x!==n))},
 });
 
 function dataQ(rows,vis,p,q0){
