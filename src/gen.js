@@ -42,7 +42,7 @@ const NW=n=>T(wMs(n),wEn(n));
 /* ---------- data umum ---------- */
 const NAMES=['Ali','Siti','Muthu','Mei Ling','Aiman','Kavitha','Jun Wei','Aisyah','Ravi','Nurul','Danish','Farah'];
 const THINGS=[T('guli','marbles'),T('buku','books'),T('pensel','pencils'),T('gula-gula','sweets'),T('setem','stamps'),T('kad','cards'),T('belon','balloons'),T('manik','beads'),T('biskut','biscuits')];
-const ITEMS=[{id:'apple',t:T('epal','apples')},{id:'star',t:T('bintang','stars')},{id:'ball',t:T('bola','balls')},{id:'fish',t:T('ikan','fish')}];
+const ITEMS=[{id:'apple',t:T('epal','apples')},{id:'star',t:T('bintang','stars')},{id:'ball',t:T('bola','balls')},{id:'fish',t:T('ikan','fish')},{id:'banana',t:T('pisang','bananas')},{id:'orange',t:T('oren','oranges')},{id:'strawberry',t:T('strawberi','strawberries')},{id:'grape',t:T('tangkai anggur','bunches of grapes')},{id:'cat',t:T('kucing','cats')},{id:'duck',t:T('itik','ducks')},{id:'butterfly',t:T('rama-rama','butterflies')},{id:'flower',t:T('bunga','flowers')}];
 const two=()=>{const a=pick(NAMES);let b=pick(NAMES);while(b===a)b=pick(NAMES);return[a,b]};
 const DAYS=[T('Isnin','Monday'),T('Selasa','Tuesday'),T('Rabu','Wednesday'),T('Khamis','Thursday'),T('Jumaat','Friday'),T('Sabtu','Saturday'),T('Ahad','Sunday')];
 const MONTHS=[T('Januari','January'),T('Februari','February'),T('Mac','March'),T('April','April'),T('Mei','May'),T('Jun','June'),T('Julai','July'),T('Ogos','August'),T('September','September'),T('Oktober','October'),T('November','November'),T('Disember','December')];
@@ -230,7 +230,7 @@ nextNum(p){const st=pick(p.steps||[1]),after=Math.random()<.5,n=ri((p.min||1)+st
 word(p){const n=ri(p.min||0,p.max),cand=[n+1,n-1,n+10,n-10,n+100,n-100,n+1000].filter(x=>x>=0&&x<=Math.max(p.max,10)&&x!==n);
   const s=String(n);if(s.length>1){const r=+s.split('').reverse().join('');if(r!==n&&String(r).length===s.length)cand.push(r)}
   if(Math.random()<.5)return mc({q:T('Pilih perkataan bagi nombor ini.','Choose the number name.'),eq:fmtN(n)},NW(n),cand.map(NW));
-  return mc({q:T(`Tulis "${wMs(n)}" dalam angka.`,`Write "${wEn(n)}" in numerals.`)},n,cand)},
+  return mc({q:T(`Pilih angka bagi "${wMs(n)}".`,`Choose the numeral for "${wEn(n)}".`)},n,cand)},
 rods(){const t=ri(1,9),o=ri(0,9),n=t*10+o;
   return mc({q:T('Berapakah nombor yang ditunjukkan?','What number is shown?'),vis:rods(t,o)},n,[o*10+t,n+1,n-1,n+10,n-10,t+o].filter(x=>x!==n&&x>0))},
 place(p){let n,ds;for(let k=0;k<50;k++){n=ri(p.min,p.max);ds=String(n).split('');if(new Set(ds).size===ds.length&&!ds.includes('0'))break}
@@ -289,7 +289,7 @@ fracShade(p){const den=pick(p.dens),num=ri(1,den-1),kind=pick(FKINDS(den)),c=pic
   if(Math.random()<.4){const nums=shuf([...Array(den-1).keys()].map(x=>x+1).filter(x=>x!==num));const ans=fracSvg(den,num,kind,{rand:1,c,mw:150});
     const cands=nums.slice(0,3).map(n=>fracSvg(den,n,kind,{rand:1,c,mw:150}));for(const d of [den+1,den+2,den+4])if(cands.length<3)cands.push(fracSvg(d,num,d%2===0&&d>=4?kind:(kind==='grid'?'rect':kind),{rand:1,c,mw:150}));
     return mc({q:T(`Gambar manakah menunjukkan ${fr(num,den)}?`,`Which picture shows ${fr(num,den)}?`),ak:fr(num,den)},ans,cands)}
-  return mc({q:pick([T('Apakah pecahan bagi bahagian yang berwarna?','What fraction is coloured?'),T('Berapakah pecahan yang dilorek?','What fraction is shaded?'),T('Tulis pecahan bagi bahagian berwarna.','Write the fraction for the coloured part.')]),vis:fracSvg(den,num,kind,{rand:Math.random()<.6,c})},fr(num,den),[fr(den-num,den),fr(num,den+1),fr(num+1,den),fr(den,num),fr(1,den),fr(num,den*2)].filter(x=>x!==fr(num,den)&&!/^(\d+)\/\1$/.test(x)))},
+  return mc({q:pick([T('Apakah pecahan bagi bahagian yang berwarna?','What fraction is coloured?'),T('Berapakah pecahan yang dilorek?','What fraction is shaded?'),T('Pilih pecahan bagi bahagian berwarna.','Write the fraction for the coloured part.')]),vis:fracSvg(den,num,kind,{rand:Math.random()<.6,c})},fr(num,den),[fr(den-num,den),fr(num,den+1),fr(num+1,den),fr(den,num),fr(1,den),fr(num,den*2)].filter(x=>x!==fr(num,den)&&!/^(\d+)\/\1$/.test(x)))},
 fracWord(p){const den=pick(p.dens),num=ri(1,den-1);
   const EN={2:['half','halves'],3:['third','thirds'],4:['quarter','quarters'],5:['fifth','fifths'],6:['sixth','sixths'],7:['seventh','sevenths'],8:['eighth','eighths'],9:['ninth','ninths'],10:['tenth','tenths']};
   const nm=(a,b)=>T(wMs(a)+' per'+wMs(b),WEN[a]+' '+EN[b][a>1?1:0]);
@@ -303,8 +303,8 @@ fracOf(p){const den=pick(p.dens),num=ri(1,den-1),k=ri(1,p.k||5),w=den*k,ans=num*
   return mc({q:T(`${fr(num,den)} daripada ${w} ${th.ms} ialah ...`,`${fr(num,den)} of ${w} ${th.en} is ...`)},ans,near(ans,[k,-k,1,-1,num,den],0).concat([w-ans,k]))},
 fracEq(){const den=pick([2,3,4,5]),num=ri(1,den-1),k=ri(2,4),ans=fr(num*k,den*k);
   return mc({q:T(`Pecahan manakah setara dengan ${fr(num,den)}?`,`Which fraction is equivalent to ${fr(num,den)}?`),vis:fracSvg(den,num,pick(FKINDS(den)))},ans,[fr(num+k,den+k),fr(num*k,den),fr(num,den*k),fr(num*k+1,den*k),fr(den-num,den)])},
-decShade(p){if(p.h){const n=ri(1,99),ans=(n/100).toFixed(2);return mc({q:T('Tulis bahagian berwarna sebagai perpuluhan.','Write the coloured part as a decimal.'),vis:grid100(n)},ans,[(n/10).toFixed(1),String(n),(((n+10)%100||5)/100).toFixed(2),((n%10*10+Math.floor(n/10))/100).toFixed(2)])}
-  const n=ri(1,9),ans='0.'+n;return mc({q:T('Tulis bahagian berwarna sebagai perpuluhan.','Write the coloured part as a decimal.'),vis:strip10(n)},ans,['0.0'+n,String(n),'0.'+(10-n),'1.'+n,'0.'+(n%9+1)])},
+decShade(p){if(p.h){const n=ri(1,99),ans=(n/100).toFixed(2);return mc({q:T('Pilih perpuluhan bagi bahagian berwarna.','Write the coloured part as a decimal.'),vis:grid100(n)},ans,[(n/10).toFixed(1),String(n),(((n+10)%100||5)/100).toFixed(2),((n%10*10+Math.floor(n/10))/100).toFixed(2)])}
+  const n=ri(1,9),ans='0.'+n;return mc({q:T('Pilih perpuluhan bagi bahagian berwarna.','Write the coloured part as a decimal.'),vis:strip10(n)},ans,['0.0'+n,String(n),'0.'+(10-n),'1.'+n,'0.'+(n%9+1)])},
 decFrac(p){if(p.h&&Math.random()<.5){const n=ri(1,99),f=fr(n,100),d=(n/100).toFixed(2);
     return Math.random()<.5?mc({q:T('Tukar kepada perpuluhan.','Convert to a decimal.'),eq:f},d,[(n/10).toFixed(1),'0.'+String(n).split('').reverse().join('').padEnd(2,'0'),(n/1000).toFixed(3),String(n)])
       :mc({q:T('Tukar kepada pecahan.','Convert to a fraction.'),eq:d},f,[fr(n,10),fr(n,1000),fr(100,n),fr(n%10||1,100)])}
@@ -417,10 +417,9 @@ ratio(){const r=Math.random(),th=pick([T('krayon','crayons'),T('pensel','pencils
 /* ===== Tahun 1 · Bab 1 (ikut Buku Teks KPM: Nombor hingga 100) ===== */
 const BTN=['#ef5b8c','#3b82f6','#22b573','#f2b705','#a66cff','#ff8a3d'];
 function boxObjs(n,kind,label,w){ // kumpulan objek dalam kotak berlabel
-  const per=5,s=34,rows=Math.max(1,Math.ceil(n/per)),bw=w||per*s+20,bh=rows*s+44;let g=`<rect x="2" y="2" width="${bw-4}" height="${bh-4}" rx="14" fill="#ffffff" stroke="#c9d6ee" stroke-width="3"/>`;
+  const per=5,s=34,rows=Math.max(1,Math.ceil(n/per)),bw=w||per*s+20,bh=rows*s+(label?44:24);let g=`<rect x="2" y="2" width="${bw-4}" height="${bh-4}" rx="14" fill="#ffffff" stroke="#c9d6ee" stroke-width="3"/>`;
   if(label)g+=`<text x="${bw/2}" y="26" text-anchor="middle" font-size="18" font-weight="800" fill="#123a8f">${label}</text>`;
   for(let i=0;i<n;i++){const r=Math.floor(i/per),c=i%per;g+=`<use href="#i-${kind}" x="${10+c*s}" y="${(label?34:12)+r*s}" width="30" height="30"/>`}
-  if(!n)g+=`<text x="${bw/2}" y="${bh/2+(label?14:6)}" text-anchor="middle" font-size="15" fill="#8a93ab">(kosong)</text>`;
   return{g,w:bw,h:bh};
 }
 function bondSvg(whole,a,b,miss){ // rajah kombinasi nombor
@@ -444,8 +443,13 @@ banyak(p){const ks=shuf(ITEMS),A=ks[0],B=Math.random()<.5?ks[0]:ks[1];const same
   const o=[T('Kumpulan A','Group A'),T('Kumpulan B','Group B'),T('Sama banyak','The same')];
   const t=pick(['lebih','kurang']);const ans=a===b?o[2]:(t==='lebih'?(a>b?o[0]:o[1]):(a<b?o[0]:o[1]));
   return mc({q:t==='lebih'?T('Kumpulan manakah lebih banyak?','Which group has more?'):T('Kumpulan manakah lebih sedikit?','Which group has fewer?'),vis,uk:a+'-'+b+A.id+B.id},ans,o)},
-countBox(p){const k=pick(ITEMS);const n=Math.random()<(p.zero||0)?0:ri(p.min||1,p.max);const b=boxObjs(n,k.id,'',n>10?190:190);
+countBox(p){const k=pick(ITEMS);const n=ri(p.min||1,p.max);const b=boxObjs(n,k.id,'',n>10?190:190);
   return mc({q:T(`Berapakah bilangan ${k.t.ms} di dalam kotak?`,`How many ${k.t.en} are in the box?`),vis:svg(b.w,b.h,b.g,260)},n,near(n,[-2,-1,1,2,3,10],0).concat(n?[0]:[1,2]))},
+sifar(p){const k=pick(ITEMS),L=['A','B','C'],z=ri(0,2),ns=L.map((_,i)=>i===z?0:ri(1,6));
+  const bs=ns.map((n,i)=>boxObjs(n,k.id,'Kotak '+L[i],190)),h=Math.max(...bs.map(b=>b.h));
+  const vis=svg(610,h,bs.map((b,i)=>`<g transform="translate(${i*210},0)">${b.g}</g>`).join(''),560);
+  const o=L.map(x=>T('Kotak '+x,'Box '+x));
+  return mc({q:T(`Kotak manakah ada sifar ${k.t.ms}?`,`Which box has zero ${k.t.en}?`),vis,uk:ns.join('')+k.id},o[z],o)},
 bond(p){const w=ri(p.min||3,p.max||10),a=ri(1,w-1),b=w-a,miss=pick(['a','b','w','a','b']);const ans=miss==='w'?w:miss==='a'?a:b;
   const eq=miss==='w'?`${a} dan ${b} ialah ?`:miss==='a'?`? dan ${b} ialah ${w}`:`${a} dan ? ialah ${w}`;
   return mc({q:T('Lengkapkan kombinasi nombor ini.','Complete this number bond.'),vis:bondSvg(w,a,b,miss),eq},ans,near(ans,[-2,-1,1,2,3],0,10))},
@@ -494,7 +498,7 @@ const CH={
 1:[
  {t:T('Nombor hingga 100','Numbers up to 100'),st:[
    S('Banyak dan sedikit','More and fewer',['banyak',{max:10}]),
-   S('Kenali 0 hingga 20','Know 0 to 20',['countBox',{max:20,zero:.15}],['word',{max:20}]),
+   S('Kenali 0 hingga 20','Know 0 to 20',['countBox',{max:20}],['countBox',{max:20}],['sifar',{}],['word',{max:20}]),
    S('Kombinasi nombor','Number bonds',['bond',{min:3,max:10}]),
    S('Nombor hingga 100 & nilai tempat','Numbers to 100 & place value',['rods',{}],['abacus',{}],['tensOnes',{}],['placeT1',{}]),
    S('Lebih, kurang & susunan','More, less & order',['seqRel',{max:100}],['orderKPM',{max:100}],['cmpStory',{max:99}]),
