@@ -1036,13 +1036,17 @@ const SILENT='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAIA+AAAC
 function unlockAudio(){if(AUD)return;try{AUD=new Audio();AUD.src=SILENT;const p=AUD.play();if(p&&p.catch)p.catch(()=>{})}catch(e){}}
 function setV(st){VSTAT=st;const b=document.querySelector('.say');if(b){b.classList.toggle('busy',st==='load');b.classList.toggle('off',st==='err'||st==='quota')}const n=document.getElementById('vnote');if(n){n.hidden=!(st==='err'||st==='quota');n.textContent=tr(st==='quota'?T('Suara cikgu sedang berehat sekejap. Cuba tekan 🔊 sebentar lagi.','The teacher’s voice is taking a short break. Try 🔊 again soon.'):T('Suara tidak dapat dimuatkan. Semak sambungan internet.','Voice can’t load. Check your internet connection.'))}}
 async function sha256(t){const d=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(t));return[...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,'0')).join('')}
+const AUDV='73f991d6ac';
 function ttsUrl(text,v){const k=v+ST.lang+text;if(TTSC.has(k))return TTSC.get(k);
   // Suara hanya dari storan (fail MP3 yang dah dijana & disemak). App TIDAK menjana suara semasa murid bermain,
   // jadi berapa ramai pengguna pun, tiada had kadar Google & tiada menunggu.
   const p=(async()=>{const L=ST.lang==='en'?'en':'ms',u=`${CFG.url}/storage/v1/object/public/tts/m2/${v}/${L}/${await sha256('v3|'+v+'|'+L+'|'+text)}.mp3`;
-    for(let t=0;t<3;t++){let r;try{r=await fetch(u,{cache:'force-cache'})}catch(e){await new Promise(z=>setTimeout(z,700*(t+1)));continue}
-      if(r.ok){const b=await r.blob();return URL.createObjectURL(b)}
-      if(r.status===400||r.status===404)throw new Error('NONE');await new Promise(z=>setTimeout(z,700*(t+1)))}
+    // ?b= ikut versi app: elak jawapan lama "fail tiada" yang tersimpan di phone/CDN selepas suara baru dijana
+    let miss=0;for(let t=0;t<4;t++){let r;const q=t===0?`${u}?b=${AUDV}`:`${u}?r=${Date.now()}${t}`;
+      try{r=await fetch(q,{cache:t===0?'default':'no-store'})}catch(e){await new Promise(z=>setTimeout(z,700*(t+1)));continue}
+      if(r.ok){const b=await r.blob();if(b.size>500)return URL.createObjectURL(b)}
+      else if(r.status===400||r.status===404){if(++miss>=2)throw new Error('NONE')}
+      await new Promise(z=>setTimeout(z,400*(t+1)))}
     throw new Error('NET')})();
   TTSC.set(k,p);p.catch(e=>{if(!e||e.message!=='NONE')TTSC.delete(k)});return p}
 function stopVoice(){if(curAudio){try{curAudio.pause()}catch(e){}curAudio=null}}
@@ -1266,7 +1270,7 @@ function semakView(id){const b=BAB[id];if(!b){app.innerHTML='<p style="padding:2
   app.innerHTML=h+'</div>'}
 {const m=location.search.match(/[?&]semak=(t\db\d+)/);if(m)semakView(m[1]);else{render();setTimeout(flushPending,3000)}}
 /* Kemas kini automatik: jika versi baru diterbitkan, muat semula app (bukan semasa murid sedang menjawab) */
-if(!/jsdom/i.test(navigator.userAgent)){const BUILD='85f04635ee';let busy=false;
+if(!/jsdom/i.test(navigator.userAgent)){const BUILD='73f991d6ac';let busy=false;
  const chk=async()=>{if(busy||location.search.includes('semak')||(V&&V.v==='play'))return;busy=true;
   try{const r=await fetch('ver.txt?t='+Date.now(),{cache:'no-store'});if(r.ok){const v=(await r.text()).trim();if(v&&v!==BUILD&&/^[0-9a-f]{10}$/.test(v))location.reload()}}catch(e){}busy=false};
  document.addEventListener('visibilitychange',()=>{if(!document.hidden)chk()});setInterval(chk,120000);setTimeout(chk,4000)}
