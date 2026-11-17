@@ -42,7 +42,10 @@ const NW=n=>T(wMs(n),wEn(n));
 /* ---------- data umum ---------- */
 const NAMES=['Ali','Siti','Muthu','Mei Ling','Aiman','Kavitha','Jun Wei','Aisyah','Ravi','Nurul','Danish','Farah'];
 const THINGS=[T('guli','marbles'),T('buku','books'),T('pensel','pencils'),T('gula-gula','sweets'),T('setem','stamps'),T('kad','cards'),T('belon','balloons'),T('manik','beads'),T('biskut','biscuits')];
-const ITEMS=[{id:'apple',t:T('epal','apples')},{id:'star',t:T('bintang','stars')},{id:'ball',t:T('bola','balls')},{id:'fish',t:T('ikan','fish')},{id:'banana',t:T('pisang','bananas')},{id:'orange',t:T('oren','oranges')},{id:'strawberry',t:T('strawberi','strawberries')},{id:'grape',t:T('tangkai anggur','bunches of grapes')},{id:'cat',t:T('kucing','cats')},{id:'duck',t:T('itik','ducks')},{id:'butterfly',t:T('rama-rama','butterflies')},{id:'flower',t:T('bunga','flowers')}];
+const ITEMS=[{id:'apple',t:T('epal','apples')},{id:'star',t:T('bintang','stars')},{id:'ball',t:T('bola','balls')},{id:'fish',t:T('ikan','fish')},{id:'banana',t:T('pisang','bananas')},{id:'orange',t:T('oren','oranges')},{id:'strawberry',t:T('strawberi','strawberries')},{id:'grape',t:T('tangkai anggur','bunches of grapes')},{id:'cat',t:T('kucing','cats')},{id:'duck',t:T('itik','ducks')},{id:'butterfly',t:T('rama-rama','butterflies')},{id:'flower',t:T('bunga','flowers')},{id:'car',t:T('kereta','cars')},{id:'bicycle',t:T('basikal','bicycles')},{id:'bus',t:T('bas','buses')},{id:'plane',t:T('kapal terbang','aeroplanes')},{id:'boat',t:T('bot','boats')},{id:'phone',t:T('telefon','phones')},{id:'pencil',t:T('pensel','pencils')},{id:'book',t:T('buku','books')},{id:'bag',t:T('beg sekolah','school bags')},{id:'umbrella',t:T('payung','umbrellas')},{id:'cup',t:T('cawan','cups')},{id:'balloon',t:T('belon','balloons')},{id:'kite',t:T('wau','kites')},{id:'chicken',t:T('ayam','chickens')},{id:'rabbit',t:T('arnab','rabbits')},{id:'turtle',t:T('penyu','turtles')},{id:'bird',t:T('burung','birds')},{id:'frog',t:T('katak','frogs')},{id:'bee',t:T('lebah','bees')},{id:'snail',t:T('siput','snails')},{id:'watermelon',t:T('potong tembikai','watermelon slices')},{id:'pineapple',t:T('nanas','pineapples')},{id:'mango',t:T('mangga','mangoes')},{id:'rambutan',t:T('rambutan','rambutans')},{id:'icecream',t:T('aiskrim','ice creams')},{id:'cake',t:T('kek cawan','cupcakes')},{id:'hat',t:T('topi','hats')},{id:'shoe',t:T('kasut','shoes')},{id:'leaf',t:T('daun','leaves')}];
+/* dek gambar: setiap soalan dalam satu bank dapat objek berbeza (tiada ulangan sehingga semua dah dipakai) */
+let ITEM_DECK=[];const itemDeckReset=()=>{ITEM_DECK=[]};
+function nextItem(){if(!ITEM_DECK.length)ITEM_DECK=shuf(ITEMS);return ITEM_DECK.pop()}
 const two=()=>{const a=pick(NAMES);let b=pick(NAMES);while(b===a)b=pick(NAMES);return[a,b]};
 const DAYS=[T('Isnin','Monday'),T('Selasa','Tuesday'),T('Rabu','Wednesday'),T('Khamis','Thursday'),T('Jumaat','Friday'),T('Sabtu','Saturday'),T('Ahad','Sunday')];
 const MONTHS=[T('Januari','January'),T('Februari','February'),T('Mac','March'),T('April','April'),T('Mei','May'),T('Jun','June'),T('Julai','July'),T('Ogos','August'),T('September','September'),T('Oktober','October'),T('November','November'),T('Disember','December')];
@@ -221,7 +224,7 @@ const fr=(a,b)=>a+'/'+b;
 /* ================= PENJANA ================= */
 const G={
 /* --- nombor --- */
-count(p){const n=ri(p.min||1,p.max),k=pick(ITEMS);
+count(p){const n=ri(p.min||1,p.max),k=nextItem();
   return mc({q:T(`Berapakah bilangan ${k.t.ms}?`,`How many ${k.t.en} are there?`),vis:objs(n,k.id)},n,near(n,[-3,-2,-1,1,2,3,10],0))},
 nextNum(p){const st=pick(p.steps||[1]),after=Math.random()<.5,n=ri((p.min||1)+st,p.max-st),ans=after?n+st:n-st;
   const q=st===1?(after?T(`Nombor selepas ${fmtN(n)} ialah ...`,`Which number comes after ${fmtN(n)}?`):T(`Nombor sebelum ${fmtN(n)} ialah ...`,`Which number comes before ${fmtN(n)}?`))
@@ -399,12 +402,12 @@ shape3(p){const k=pick(p.set);return mc({q:T('Apakah nama bentuk ini?','What is 
 props3(p){const k=pick(p.set),w=pick(['f','e','v']),Q={f:T('permukaan rata','flat faces'),e:T('tepi','edges'),v:T('bucu','vertices')}[w],ans=SH3[k][w];
   return mc({q:T(`Berapakah bilangan ${Q.ms} bentuk ini?`,`How many ${Q.en} does this shape have?`),vis:shape3Svg(k)},ans,near(ans,[1,-1,2,-2,4,-4],0).concat([6,8,12]))},
 /* --- data --- */
-picto(p){const unit=pick(p.units||[1]),ns=shuf(NAMES).slice(0,4),kind=pick(['star','apple','ball']),rows=ns.map(n=>({n,v:ri(1,p.max||6)*unit}));
+picto(p){const unit=pick(p.units||[1]),ns=shuf(NAMES).slice(0,4),kind=nextItem().id,rows=ns.map(n=>({n,v:ri(1,p.max||6)*unit}));
   const title=T(`Bilangan ${ITEMS.find(i=>i.id===kind).t.ms} yang dikumpul`,`Number of ${ITEMS.find(i=>i.id===kind).t.en} collected`),vis=picto(rows,unit,kind,title);return dataQ(rows,vis,p)},
 bars(p){const unit=p.step||5,ns=shuf(NAMES).slice(0,4),rows=ns.map(n=>({n,v:ri(1,(p.max||50)/unit)*unit}));
   return dataQ(rows,barsSvg(rows,p.axis||10,p.max||50),p,T('Carta palang menunjukkan bilangan buku yang dibaca.','The bar chart shows the number of books read.'))},
 /* --- koordinat, nisbah, kadaran --- */
-coord(p){const n=5,ks=shuf(['apple','star','ball','fish']).slice(0,3),used=new Set(),pts=ks.map(k=>{let x,y;do{x=ri(0,n);y=ri(0,n)}while(used.has(x+','+y)||x===y);used.add(x+','+y);return{k,x,y}});
+coord(p){const n=5,ks=[nextItem().id,nextItem().id,nextItem().id],used=new Set(),pts=ks.map(k=>{let x,y;do{x=ri(0,n);y=ri(0,n)}while(used.has(x+','+y)||x===y);used.add(x+','+y);return{k,x,y}});
   const t=pick(pts),nm=ITEMS.find(i=>i.id===t.k).t,f=(a,b)=>`(${a}, ${b})`;
   if(p.mode==='at'||(!p.mode&&Math.random()<.4)){const O=pts.map(q=>ITEMS.find(i=>i.id===q.k).t);
     return mc({q:T(`Apakah objek di koordinat ${f(t.x,t.y)}?`,`Which object is at ${f(t.x,t.y)}?`),vis:coordSvg(pts,n)},nm,O.concat([T('tiada','nothing')]))}
@@ -436,16 +439,16 @@ function jarSvg(n,seed){ // balang berisi butang (rawak tapi tidak bertindih)
   return `<path d="M40 30 H140 V44 Q160 50 160 70 V176 Q160 196 140 196 H40 Q20 196 20 176 V70 Q20 50 40 44 Z" fill="#eef7ff" stroke="#7aa7e6" stroke-width="3"/><rect x="36" y="18" width="108" height="16" rx="5" fill="#9db8f2"/>`+pts.map((p,i)=>`<circle cx="${p[0].toFixed(1)}" cy="${p[1].toFixed(1)}" r="5.5" fill="${BTN[i%BTN.length]}" stroke="#1f2a5c" stroke-width="1"/>`).join('');
 }
 Object.assign(G,{
-banyak(p){const ks=shuf(ITEMS),A=ks[0],B=Math.random()<.5?ks[0]:ks[1];const same=Math.random()<.2;
+banyak(p){const A=nextItem(),B=Math.random()<.5?A:nextItem();const same=Math.random()<.2;
   let a=ri(1,p.max||10),b;do{b=ri(1,p.max||10)}while(!same&&b===a);if(same)b=a;
   const ga=boxObjs(a,A.id,'Kumpulan A',190),gb=boxObjs(b,B.id,'Kumpulan B',190),h=Math.max(ga.h,gb.h);
   const vis=svg(400,h,`<g>${ga.g}</g><g transform="translate(210,0)">${gb.g}</g>`,460);
   const o=[T('Kumpulan A','Group A'),T('Kumpulan B','Group B'),T('Sama banyak','The same')];
   const t=pick(['lebih','kurang']);const ans=a===b?o[2]:(t==='lebih'?(a>b?o[0]:o[1]):(a<b?o[0]:o[1]));
   return mc({q:t==='lebih'?T('Kumpulan manakah lebih banyak?','Which group has more?'):T('Kumpulan manakah lebih sedikit?','Which group has fewer?'),vis,uk:a+'-'+b+A.id+B.id},ans,o)},
-countBox(p){const k=pick(ITEMS);const n=ri(p.min||1,p.max);const b=boxObjs(n,k.id,'',n>10?190:190);
+countBox(p){const k=nextItem();const n=ri(p.min||1,p.max);const b=boxObjs(n,k.id,'',n>10?190:190);
   return mc({q:T(`Berapakah bilangan ${k.t.ms} di dalam kotak?`,`How many ${k.t.en} are in the box?`),vis:svg(b.w,b.h,b.g,260)},n,near(n,[-2,-1,1,2,3,10],0).concat(n?[0]:[1,2]))},
-sifar(p){const k=pick(ITEMS),L=['A','B','C'],z=ri(0,2),ns=L.map((_,i)=>i===z?0:ri(1,6));
+sifar(p){const k=nextItem(),L=['A','B','C'],z=ri(0,2),ns=L.map((_,i)=>i===z?0:ri(1,6));
   const bs=ns.map((n,i)=>boxObjs(n,k.id,'Kotak '+L[i],190)),h=Math.max(...bs.map(b=>b.h));
   const vis=svg(610,h,bs.map((b,i)=>`<g transform="translate(${i*210},0)">${b.g}</g>`).join(''),560);
   const o=L.map(x=>T('Kotak '+x,'Box '+x));
