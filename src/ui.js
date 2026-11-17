@@ -292,7 +292,7 @@ function makeSet(gens,n,min){ // n soalan berbeza; jika ruang soalan kecil, hany
 const BANK_N=20,BANK_V='b2',BANKC={};
 function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
 function hstr(x){let h=2166136261;for(const c of x){h^=c.charCodeAt(0);h=Math.imul(h,16777619)}return h>>>0}
-function stageBank(id,s){const k=id+'|'+s;if(BANKC[k])return BANKC[k];const b=BAB[id],R=Math.random;Math.random=rng(hstr(BANK_V+'|'+k));itemDeckReset();
+function stageBank(id,s){const b=BAB[id],sk=b.st[s]&&b.st[s].sk!=null?b.st[s].sk:s,k=id+'|'+sk;if(BANKC[k])return BANKC[k];const R=Math.random;Math.random=rng(hstr(BANK_V+'|'+k));itemDeckReset();
   try{BANKC[k]=makeSet(()=>b.st[s],BANK_N,STAGE_Q).map((q,i)=>(q.vo=i%2?'m':'f',q.bk=k+'|'+i,q))}finally{Math.random=R}return BANKC[k]}
 const cloneQ=q=>JSON.parse(JSON.stringify(q));
 function pickBank(pools,n){ // pools: senarai bank; selang-seli suara f/m

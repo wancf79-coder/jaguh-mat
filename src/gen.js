@@ -491,6 +491,61 @@ estimate(p){const tg=pick(p.targets||[20,30,40,50]),n=tg+ri(-2,2);const ref=jarS
   const f=x=>T(`lebih kurang ${x}`,`about ${x}`);
   return mc({q:T('Anggarkan bilangan butang di dalam balang besar.','Estimate the number of buttons in the big jar.'),vis,uk:n},f(tg),[10,20,30,40,50,60,80].filter(x=>x!==tg).map(f))},
 });
+/* ===== Tahun 1 Bab 2 (KPM): Tambah dan Tolak — topik tambahan ikut buku teks ===== */
+const ANIM=new Set(['fish','cat','duck','butterfly','chicken','rabbit','turtle','bird','frog','bee','snail']);
+const FOOD=new Set(['apple','banana','orange','strawberry','grape','watermelon','pineapple','mango','rambutan','icecream','cake']);
+const COLOR_OBJ=[T('guli','marbles'),T('pensel','pencils'),T('kad','cards'),T('belon','balloons'),T('manik','beads'),T('butang','buttons'),T('bola','balls'),T('pemadam','erasers'),T('pembaris','rulers')];
+function iconRow(n,id,x0,y0,s,per,fade){let g='';for(let i=0;i<n;i++){const c=i%per,r=Math.floor(i/per),x=x0+c*s,y=y0+r*s,f=fade&&i>=n-fade;
+  g+=`<use href="#i-${id}" x="${x}" y="${y}" width="${s-4}" height="${s-4}"${f?' opacity=".35"':''}/>`;
+  if(f)g+=`<path d="M${x+3} ${y+3}L${x+s-7} ${y+s-7}M${x+s-7} ${y+3}L${x+3} ${y+s-7}" stroke="#e5484d" stroke-width="4" stroke-linecap="round"/>`}return g}
+function plusPic(a,b,id){const s=44,per=3,bw=per*s+16,ra=Math.ceil(Math.max(a,b)/per),bh=ra*s+16,gap=44;
+  const box=(x,n)=>`<rect x="${x}" y="2" width="${bw}" height="${bh}" rx="12" fill="#fff" stroke="#c9d6ea" stroke-width="2"/>`+iconRow(n,id,x+10,10,s,per);
+  return svg(bw*2+gap,bh+4,box(0,a)+`<text x="${bw+gap/2}" y="${bh/2+14}" text-anchor="middle" font-size="40" font-weight="800" fill="#ff8a3d">+</text>`+box(bw+gap,b),400)}
+function takePic(n,k,id){const s=44,per=5,rows=Math.ceil(n/per),w=per*s+20,h=rows*s+20;
+  return svg(w,h,`<rect x="1" y="1" width="${w-2}" height="${h-2}" rx="12" fill="#fff" stroke="#c9d6ea" stroke-width="2"/>`+iconRow(n,id,12,12,s,per,k),330)}
+function twoRows(a,b,A,B){const s=34,w=Math.max(a,b)*s+20,h=2*s+30;
+  return svg(w,h,`<rect x="1" y="1" width="${w-2}" height="${h-2}" rx="12" fill="#fff" stroke="#c9d6ea" stroke-width="2"/>`+iconRow(a,A.id,12,10,s,99)+iconRow(b,B.id,12,20+s,s,99),Math.min(w*1.1,460))}
+function groupsPic(k,m,id){const per=m===10?5:m===5?5:2,s=m>=5?30:36,bw=per*s+14,bh=Math.ceil(m/per)*s+14,cols=Math.min(k,3),gw=bw+10;
+  let g='';for(let i=0;i<k;i++){const x=(i%cols)*gw,y=Math.floor(i/cols)*(bh+10);g+=`<rect x="${x+1}" y="${y+1}" width="${bw}" height="${bh}" rx="10" fill="#fff" stroke="#c9d6ea" stroke-width="2"/>`+iconRow(m,id,x+8,y+8,s,per)}
+  return svg(cols*gw,Math.ceil(k/cols)*(bh+10),g,Math.min(cols*gw*1.2,480))}
+const eqs=(xs,op,r)=>xs.join(` ${op} `)+` = ${r}`;
+Object.assign(G,{
+kenaliTambah(p){const it=nextItem(),X=it.t.ms,a=ri(2,7),b=ri(1,Math.min(10-a,5)),c=a+b;const vis=plusPic(a,b,it.id),k=p.eq?2:deck('kt',[0,1]);
+  if(k===2){const ok=eqs([a,b],'+',c);return mc({q:T('Pilih ayat matematik bagi gambar ini.','Choose the number sentence for this picture.'),vis,uk:'ktm'+a+'|'+b},ok,[eqs([a,b+1],'+',c+1),eqs([a+1,b],'+',c+1),eqs([c,b],'−',a),eqs([a,a],'+',2*a),eqs([b,b],'+',2*b)].filter(x=>x!==ok))}
+  const q=ANIM.has(it.id)?`Ada ${a} ${X}. ${b} ${X} datang lagi. Berapakah ${X} semuanya?`:`Ada ${a} ${X} dan ${b} ${X}. Berapakah jumlah ${X}?`;
+  return mc({q:T(q,`There are ${a} and ${b} ${it.t.en}. How many altogether?`),vis},c,near(c,[-2,-1,1,2,3],1,12))},
+kenaliTolak(p){const it=nextItem(),X=it.t.ms,n=ri(4,10),k=ri(1,n-2),r=n-k,nm=nextName();const vis=takePic(n,k,it.id),t=p.eq?1:0;
+  if(t===1){const ok=eqs([n,k],'−',r);return mc({q:T('Pilih ayat matematik bagi gambar ini.','Choose the number sentence for this picture.'),vis,uk:'tlm'+n+'|'+k},ok,[eqs([n,k],'+',n+k),eqs([n,r],'−',k),eqs([n-1,k],'−',r-1),eqs([n+1,k],'−',r+1)].filter(x=>x!==ok))}
+  const q=ANIM.has(it.id)?`Ada ${n} ${X}. ${k} ${X} pergi. Berapakah ${X} yang tinggal?`:FOOD.has(it.id)?`Ada ${n} ${X}. ${nm} makan ${k} ${X}. Berapakah ${X} yang tinggal?`:`Ada ${n} ${X}. ${nm} mengambil ${k} ${X}. Berapakah ${X} yang tinggal?`;
+  return mc({q:T(q,`There are ${n} ${it.t.en}. ${k} are taken away. How many are left?`),vis},r,near(r,[-2,-1,1,2,k],1,10))},
+bezaPic(p){const A=nextItem();let B=nextItem();const a=ri(3,10);let b=ri(1,9);if(b===a)b=a>5?a-3:a+2;const d=Math.abs(a-b);
+  return mc({q:T(`Berapakah beza bilangan ${A.t.ms} dengan ${B.t.ms}?`,`What is the difference between the number of ${A.t.en} and ${B.t.en}?`),vis:twoRows(a,b,A,B)},d,near(d,[-2,-1,1,2,a+b-d],1,20).filter(x=>x!==a&&x!==b))},
+bezaNum(p){const a=freshN(p.min||6,p.max||18),b=ri(2,a-2),d=a-b;
+  return mc({q:T(`Berapakah beza ${a} dengan ${b}?`,`What is the difference between ${a} and ${b}?`)},d,near(d,[-2,-1,1,2,10],1,p.max||18).filter(x=>x!==a+b))},
+anuNum(p){const t=deck('anu',[0,1]);
+  if(t===0){const a=ri(11,79),d=ri(5,99-a),c=a+d;return mc({q:T(`Berapakah yang perlu ditambah kepada ${a} supaya menjadi ${c}?`,`What must be added to ${a} to make ${c}?`)},d,near(d,[-10,10,-1,1,2,-2],1,99).filter(x=>x!==c))}
+  const a=ri(30,99),d=ri(5,a-11),c=a-d;return mc({q:T(`Berapakah yang perlu ditolak daripada ${a} supaya menjadi ${c}?`,`What must be subtracted from ${a} to make ${c}?`)},d,near(d,[-10,10,-1,1,2,-2],1,99).filter(x=>x!==c))},
+storyKPM(p){const NM3=NAMES2.concat(['Amir','Lina','Zura','Kumari','Samir','Dayang','Faiz','Selvi']),t=deck('sty',['gab','beri+','beri-','lebih','kurang','beza','anu+','anu-']),n1=deck('nm3',NM3);let n2=deck('nm3',NM3);if(n2===n1)n2=deck('nm3',NM3);
+  const O=t==='gab'?deck('cob',COLOR_OBJ):nextObj(),X=O.ms;let q,ans,a,b;
+  if(t==='gab'){a=ri(5,60);b=ri(3,99-a);ans=a+b;q=`${n1} ada ${a} ${X} merah dan ${b} ${X} biru. Berapakah jumlah ${X} ${n1}?`}
+  else if(t==='beri+'){a=ri(5,70);b=ri(3,99-a);ans=a+b;q=`${n1} ada ${a} ${X}. ${n2} memberi ${b} ${X} lagi kepada ${n1}. Berapakah jumlah ${X} ${n1} sekarang?`}
+  else if(t==='beri-'){a=ri(12,99);b=ri(2,a-3);ans=a-b;q=`${n1} ada ${a} ${X}. ${n1} memberi ${b} ${X} kepada ${n2}. Berapakah ${X} ${n1} yang tinggal?`}
+  else if(t==='lebih'){a=ri(8,70);b=ri(2,Math.min(30,99-a));ans=a+b;q=`${n1} ada ${a} ${X}. ${n2} ada ${b} ${X} lebih daripada ${n1}. Berapakah ${X} ${n2}?`}
+  else if(t==='kurang'){a=ri(15,99);b=ri(2,Math.min(30,a-5));ans=a-b;q=`${n1} ada ${a} ${X}. ${n2} ada ${b} ${X} kurang daripada ${n1}. Berapakah ${X} ${n2}?`}
+  else if(t==='beza'){a=ri(20,99);b=ri(5,a-3);ans=a-b;q=`${n1} ada ${a} ${X}. ${n2} ada ${b} ${X}. Berapakah beza ${X} mereka?`}
+  else if(t==='anu+'){a=ri(8,70);ans=ri(3,Math.min(30,99-a));b=a+ans;q=`${n1} ada ${a} ${X}. ${n2} memberi beberapa ${X} lagi. Kini ${n1} ada ${b} ${X}. Berapakah ${X} yang diberi?`}
+  else{a=ri(20,99);ans=ri(3,a-5);b=a-ans;q=`${n1} ada ${a} ${X}. Selepas memberi beberapa ${X} kepada ${n2}, tinggal ${b}. Berapakah ${X} yang diberi?`}
+  const wrong=t==='gab'||t==='beri+'||t==='lebih'?Math.abs(a-b):t==='anu+'||t==='anu-'?a+b:a+b;
+  return mc({q:T(q,'Word problem')},ans,near(ans,[-10,10,-1,1,2,-2],0,99).concat(wrong<=99&&wrong>0?[wrong]:[]))},
+tambahUlang(p){const it=nextItem(),X=it.t.ms,m=deck('tum',[2,4,5,10,2,5]),k=m===10?ri(2,4):ri(2,5),c=k*m,vis=groupsPic(k,m,it.id),t=deck('tut',[0,0,1]);
+  if(t===1){const ok=eqs(Array(k).fill(m),'+',c);return mc({q:T('Pilih ayat matematik bagi gambar ini.','Choose the number sentence for this picture.'),vis,uk:'tum'+k+'|'+m},ok,[eqs(Array(k-1).fill(m),'+',(k-1)*m),eqs(Array(k+1).fill(m),'+',(k+1)*m),eqs([m,k],'+',m+k),eqs(Array(k).fill(m===10?5:m+1),'+',k*(m===10?5:m+1)),eqs(Array(k).fill(m>2?m-1:m+2),'+',k*(m>2?m-1:m+2))].filter(x=>x!==ok&&!x.startsWith(m+' =')))}
+  return mc({q:T(`Ada ${k} kumpulan ${X}. Setiap kumpulan ada ${m} ${X}. Berapakah ${X} semuanya?`,`There are ${k} groups of ${m} ${it.t.en}. How many altogether?`),vis},c,[c-m,c+m,m+k,c+1,c-1].filter(x=>x>0&&x!==c))},
+tolakUlang(p){const t=deck('tlu',[0,0,1]);
+  if(t===1){const m=ri(2,5),k=ri(2,4),n=m*k+deck('tlr',[1,1,2,0])*m,r=n-k*m;return mc({q:T('Selesaikan tolak berturut-turut ini.','Solve this repeated subtraction.'),eq:[n,...Array(k).fill(m)].join(' − ')+' = ?'},r,near(r,[m,-m,1,2,-1,3,m+1],0,30))}
+  const nm=nextName(),O=nextObj(),m=ri(2,5),k=ri(2,4),n=m*k;
+  return mc({q:T(`${nm} ada ${n} ${O.ms}. ${nm} memberi sama banyak kepada ${k} orang kawannya. Berapakah ${O.ms} yang setiap orang dapat?`,`Sharing`)},m,near(m,[1,-1,2,-2,3,k],1,30).filter(x=>x!==k&&x!==n))},
+});
+
 function dataQ(rows,vis,p,q0){
   const r=Math.random(),pre=q0?q0.ms+' ':'',preE=q0?q0.en+' ':'';
   const nm=rows.map(x=>x.n);
@@ -503,7 +558,7 @@ function dataQ(rows,vis,p,q0){
 }
 
 /* ================= KURIKULUM ================= */
-const S=(ms,en,...g)=>({t:T(ms,en),g});
+const S=(ms,en,...g)=>({t:T(ms,en),g});const SK=(k,st)=>(st.sk=k,st);
 const CH={
 1:[
  {t:T('Nombor hingga 100','Numbers up to 100'),st:[
@@ -514,12 +569,15 @@ const CH={
    S('Lebih, kurang & susunan','More, less & order',['seqRel',{max:100,cap:8}],['orderKPM',{max:100,cap:5}],['cmpStory',{max:99,cap:7}]),
    S('Pola, anggaran & bundar','Patterns, estimation & rounding',['patternKPM',{steps:[1,2,4,5,10],max:100,cap:10}],['estimate',{cap:4}],['round',{min:11,max:99,to:[10],pos:1,cap:6}])]},
  {t:T('Tambah dan Tolak','Addition and Subtraction'),st:[
-   S('Fakta asas tambah','Basic addition facts',['add',{basic:1,max:18}]),
-   S('Tambah hingga 100','Add within 100',['add',{max:100,min:10,carry:false}],['add',{max:100,min:10,carry:true}]),
-   S('Fakta asas tolak','Basic subtraction facts',['sub',{basic:1,max:18}]),
-   S('Tolak hingga 100','Subtract within 100',['sub',{max:99,min:20,borrow:false}],['sub',{max:99,min:20,borrow:true}]),
-   S('Nombor hilang','Missing numbers',['missing',{max:20}]),
-   S('Masalah harian','Word problems',['story',{ops:['+','-'],max:100}])]},
+   SK('k1',S('Kenali tambah','Know addition',['kenaliTambah',{cap:13}],['kenaliTambah',{eq:1,cap:7}])),
+   SK(0,S('Fakta asas tambah','Basic addition facts',['add',{basic:1,max:18,lim:20}])),
+   SK(1,S('Tambah hingga 100','Add within 100',['add',{max:100,min:10,carry:false,lim:100}],['add',{max:100,min:10,carry:true,lim:100}])),
+   SK('k2',S('Kenali tolak & beza','Know subtraction & difference',['kenaliTolak',{cap:8}],['kenaliTolak',{eq:1,cap:5}],['bezaPic',{cap:4}],['bezaNum',{max:18,cap:4}])),
+   SK(2,S('Fakta asas tolak','Basic subtraction facts',['sub',{basic:1,max:18,lim:20}])),
+   SK(3,S('Tolak hingga 100','Subtract within 100',['sub',{max:99,min:20,borrow:false,lim:100}],['sub',{max:99,min:20,borrow:true,lim:100}])),
+   SK(4,S('Nombor hilang','Missing numbers',['missing',{max:20,lim:20}])),
+   SK('k3',S('Cerita tambah & tolak','Addition & subtraction stories',['storyKPM',{cap:16}],['anuNum',{cap:4}])),
+   SK('k4',S('Tambah berulang & tolak berturut-turut','Repeated addition & subtraction',['tambahUlang',{cap:12}],['tolakUlang',{cap:8}]))]},
  {t:T('Pecahan','Fractions'),st:[
    S('Kenal pecahan','Recognise fractions',['fracShade',{dens:[2,4]}]),
    S('Sebut pecahan','Say fractions',['fracWord',{dens:[2,4]}]),
@@ -633,4 +691,6 @@ const CH={
    S('Tafsir data','Interpret data',['bars',{step:5,max:50,axis:10}],['picto',{units:[2,5],max:6}])]}
 ]};
 const BAB={};for(const t of [1,2,3])CH[t].forEach((b,i)=>{b.id=`t${t}b${i+1}`;b.tahun=t;b.n=i+1;BAB[b.id]=b});
-function genQ(stage){for(let k=0;k<6;k++){try{const [fn,p]=pick(stage.g),q=G[fn](p);if(q&&q.opts.length>=2&&q.ans>=0){q.gn=fn;q.cap=p&&p.cap;return q}}catch(e){if(typeof console!=='undefined')console.warn(e)}}return mc({q:T('Berapakah 2 + 2?','What is 2 + 2?'),eq:'2 + 2 = ?'},4,[3,5,6])}
+function limOpts(q,lim){const num=o=>typeof o==='string'&&/^\d+$/.test(o)?+o:null,a=num(q.opts[q.ans]);if(a==null)return;const used=new Set(q.opts.map(num));
+  q.opts=q.opts.map((o,i)=>{const v=num(o);if(i===q.ans||v==null||(v<=lim&&!(v===0&&a>=3)))return o;for(const d of [3,-3,4,-4,5,-5,6,-6,2,-2,7,-7,8,-8]){const c=a+d;if(c>=1&&c<=lim&&!used.has(c)){used.add(c);return String(c)}}return o})}
+function genQ(stage){for(let k=0;k<6;k++){try{const [fn,p]=pick(stage.g),q=G[fn](p);if(q&&q.opts.length>=2&&q.ans>=0){if(p&&p.lim)limOpts(q,p.lim);q.gn=fn+(p&&p.eq?':eq':'');q.cap=p&&p.cap;return q}}catch(e){if(typeof console!=='undefined')console.warn(e)}}return mc({q:T('Berapakah 2 + 2?','What is 2 + 2?'),eq:'2 + 2 = ?'},4,[3,5,6])}
