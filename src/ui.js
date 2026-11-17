@@ -113,6 +113,7 @@ function sayText(q){
   t=t.replace(/(\d+):(\d\d) (am|pm)/g,(m,h,mm,ap)=>h+(+mm?':'+mm:" o'clock")+' '+(ap==='am'?'a.m.':'p.m.'));
   if(!ms)t=t.replace(/\b(\d)(st|nd|rd|th)\b/g,(m,d)=>['','first','second','third','fourth','fifth','sixth','seventh','eighth','ninth'][+d]);
   t=ms?msNums(t):enNums(t);
+  if(ms)t=t.replace(/\bsetem\b/g,'stem'); // sebutan biasa
   if(ms)t=t.replace(/\bper(dua|tiga|empat|lima|enam|tujuh|lapan|sembilan|sepuluh|seratus)\b/g,'per $1');
   return t.replace(/\s+/g,' ').replace(/\s+([?.,!])/g,'$1').replace(/\.{2,}/g,'.').trim().slice(0,320);
 }

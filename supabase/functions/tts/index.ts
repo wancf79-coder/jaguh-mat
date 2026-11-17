@@ -46,7 +46,7 @@ function wEn(n: number): string {
 function words(t: string, lang: string) {
   return t.toLowerCase().replace(/(\d+)/g, (m) => " " + (lang === "en" ? wEn(+m) : wMs(+m)) + " ")
     .replace(/o'clock/g, "oclock").replace(/a\.m\./g, "am").replace(/p\.m\./g, "pm")
-    .replace(/[^\p{L}\s]/gu, " ").split(/\s+/).filter(Boolean);
+    .replace(/[^\p{L}\s]/gu, " ").replace(/\bsetem\b/g, "stem").split(/\s+/).filter(Boolean);
 }
 function wer(a: string[], b: string[]) { // jarak edit perkataan / panjang sasaran
   const d = Array.from({ length: a.length + 1 }, (_, i) => [i, ...Array(b.length).fill(0)]);

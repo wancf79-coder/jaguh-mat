@@ -506,9 +506,9 @@ mix(p){const a=ri(100,p.max/2),b=ri(50,p.max/2),c=ri(10,Math.min(a+b-1,p.max/3))
   return mc({q:T('Selesaikan dari kiri ke kanan.','Solve from left to right.'),eq},ans,near(ans,[10,-10,100,-100,1,-1],0).concat([plus?a+b+c:a-c]))},
 story(p){const op=pick(p.ops),[n1,n2]=two(),th=pick(THINGS);let a,b,ans,q;
   if(op==='+'){a=ri(p.min||2,Math.floor(p.max*.6));b=ri(2,p.max-a);ans=a+b;
-    q=T(`${n1} ada ${fmtN(a)} ${th.ms}. ${n2} memberi ${fmtN(b)} ${th.ms} lagi kepadanya. Berapakah jumlah ${th.ms} ${n1} sekarang?`,`${n1} has ${fmtN(a)} ${th.en}. ${n2} gives ${n1} ${fmtN(b)} more ${th.en}. How many ${th.en} does ${n1} have now?`)}
+    q=T(`${n1} ada ${fmtN(a)} ${th.ms}. ${n2} memberi ${fmtN(b)} ${th.ms} lagi kepada ${n1}. Berapakah jumlah ${th.ms} ${n1} sekarang?`,`${n1} has ${fmtN(a)} ${th.en}. ${n2} gives ${n1} ${fmtN(b)} more ${th.en}. How many ${th.en} does ${n1} have now?`)}
   else if(op==='-'){a=ri(Math.max(5,p.min||5),p.max);b=ri(1,a-1);ans=a-b;
-    q=T(`${n1} ada ${fmtN(a)} ${th.ms}. Dia memberi ${fmtN(b)} ${th.ms} kepada ${n2}. Berapakah ${th.ms} yang tinggal?`,`${n1} has ${fmtN(a)} ${th.en}. ${n1} gives ${fmtN(b)} ${th.en} to ${n2}. How many ${th.en} are left?`)}
+    q=T(`${n1} ada ${fmtN(a)} ${th.ms}. Dia memberi ${fmtN(b)} ${th.ms} kepada ${n2}. Berapakah ${th.ms} ${n1} yang tinggal?`,`${n1} has ${fmtN(a)} ${th.en}. ${n1} gives ${fmtN(b)} ${th.en} to ${n2}. How many ${th.en} does ${n1} have left?`)}
   else if(op==='×'){a=ri(2,p.big?9:5);b=pick(p.tables||[2,3,4,5,10]);ans=a*b;
     q=T(`Ada ${a} kotak. Setiap kotak berisi ${b} ${th.ms}. Berapakah jumlah ${th.ms} semuanya?`,`There are ${a} boxes. Each box has ${b} ${th.en}. How many ${th.en} are there altogether?`)}
   else{b=pick(p.tables||[2,3,4,5,10]);ans=ri(2,10);a=ans*b;
@@ -562,11 +562,11 @@ moneyStory(p){const op=pick(p.ops),[n1]=two(),u=p.cents?5:100,R=x=>Math.round(x/
   if(op==='+'){a=R(ri(u,p.max*.5));b=R(ri(u,p.max-a));ans=a+b;const x=pick(items),y=pick(items.filter(i=>i!==x));
     q=T(`${n1} membeli ${x.ms} berharga ${rm(a)} dan ${y.ms} berharga ${rm(b)}. Berapakah jumlah harganya?`,`${n1} buys ${x.en} for ${rm(a)} and ${y.en} for ${rm(b)}. What is the total price?`)}
   else if(op==='-'){a=R(ri(u*4,p.max));b=R(ri(u,a-u));ans=a-b;const x=pick(items);
-    q=T(`${n1} ada ${rm(a)}. Dia membeli ${x.ms} berharga ${rm(b)}. Berapakah baki wangnya?`,`${n1} has ${rm(a)}. ${n1} buys ${x.en} for ${rm(b)}. How much money is left?`)}
+    q=T(`${n1} ada ${rm(a)}. Dia membeli ${x.ms} berharga ${rm(b)}. Berapakah baki wang ${n1}?`,`${n1} has ${rm(a)}. ${n1} buys ${x.en} for ${rm(b)}. How much money is left?`)}
   else if(op==='×'){b=ri(2,9);a=R(ri(u,Math.floor(p.max/b)));ans=a*b;const x=pick(items);
     q=T(`Harga ${x.ms.replace(/^a /,'')} ialah ${rm(a)}. Berapakah harga ${b} unit?`,`One unit costs ${rm(a)}. What is the price of ${b} units?`)}
   else{b=ri(2,9);ans=R(ri(u,Math.floor(p.max/b)));a=ans*b;
-    q=T(`${rm(a)} dikongsi sama banyak oleh ${b} orang. Berapakah yang setiap orang dapat?`,`${rm(a)} is shared equally among ${b} people. How much does each person get?`)}
+    q=T(`${rm(a)} dikongsi sama banyak oleh ${b} orang. Berapakah wang yang diterima oleh setiap orang?`,`${rm(a)} is shared equally among ${b} people. How much does each person get?`)}
   return mc({q},rm(ans),[ans+u,ans-u,ans+10*u,ans-10*u,ans+50].filter(x=>x>0).map(rm))},
 /* --- masa --- */
 period(){const L=[[T('Kita bersarapan pada waktu ...','We have breakfast in the ...'),0],[T('Matahari terbit pada waktu ...','The sun rises in the ...'),0],[T('Murid makan tengah hari pada waktu ...','Pupils have lunch at ...'),1],
@@ -619,7 +619,7 @@ uconv(p){const u=pick(p.pairs),[a,b,f]=u;
 mstory(p){const K=pick(p.kinds),U={len:['cm',T('reben','ribbon'),T('panjang','long')],mass:['g',T('tepung','flour'),T('berat','heavy')],vol:['ml',T('jus','juice'),T('isi padu','volume')]}[K];
   const [n1,n2]=two(),a=ri(p.min||10,p.max),b=ri(5,a-1),plus=Math.random()<.5,ans=plus?a+b:a-b;
   const q=plus?T(`${n1} ada ${fmtN(a)} ${U[0]} ${U[1].ms}. ${n2} ada ${fmtN(b)} ${U[0]} ${U[1].ms}. Berapakah jumlah ${U[1].ms} mereka?`,`${n1} has ${fmtN(a)} ${U[0]} of ${U[1].en}. ${n2} has ${fmtN(b)} ${U[0]} of ${U[1].en}. How much ${U[1].en} do they have altogether?`)
-             :T(`${n1} ada ${fmtN(a)} ${U[0]} ${U[1].ms}. Dia menggunakan ${fmtN(b)} ${U[0]}. Berapakah baki ${U[1].ms}?`,`${n1} has ${fmtN(a)} ${U[0]} of ${U[1].en}. ${n1} uses ${fmtN(b)} ${U[0]}. How much ${U[1].en} is left?`);
+             :T(`${n1} ada ${fmtN(a)} ${U[0]} ${U[1].ms}. Dia menggunakan ${fmtN(b)} ${U[0]}. Berapakah baki ${U[1].ms} ${n1}?`,`${n1} has ${fmtN(a)} ${U[0]} of ${U[1].en}. ${n1} uses ${fmtN(b)} ${U[0]}. How much ${U[1].en} is left?`);
   return mc({q},fmtN(ans)+' '+U[0],near(ans,[10,-10,1,-1,5],1).map(x=>fmtN(x)+' '+U[0]).concat([fmtN(plus?a-b:a+b)+' '+U[0]]))},
 /* --- ruang --- */
 shape2(p){const k=pick(p.set);return mc({q:T('Apakah nama bentuk ini?','What is the name of this shape?'),vis:shape2Svg(k)},SH2[k].t,p.set.concat(['sq','re','tr','ci']).map(x=>SH2[x].t))},
@@ -902,6 +902,7 @@ function sayText(q){
   t=t.replace(/(\d+):(\d\d) (am|pm)/g,(m,h,mm,ap)=>h+(+mm?':'+mm:" o'clock")+' '+(ap==='am'?'a.m.':'p.m.'));
   if(!ms)t=t.replace(/\b(\d)(st|nd|rd|th)\b/g,(m,d)=>['','first','second','third','fourth','fifth','sixth','seventh','eighth','ninth'][+d]);
   t=ms?msNums(t):enNums(t);
+  if(ms)t=t.replace(/\bsetem\b/g,'stem'); // sebutan biasa
   if(ms)t=t.replace(/\bper(dua|tiga|empat|lima|enam|tujuh|lapan|sembilan|sepuluh|seratus)\b/g,'per $1');
   return t.replace(/\s+/g,' ').replace(/\s+([?.,!])/g,'$1').replace(/\.{2,}/g,'.').trim().slice(0,320);
 }
